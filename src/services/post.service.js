@@ -1,20 +1,21 @@
 const httpStatus = require('http-status');
-const { User } = require('../models');
+const { Post } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
- * Create a user
- * @param {Object} userBody
- * @returns {Promise<User>}
+ * Create a post
+ * @param {Object} postBody
+ * @returns {Promise<PositionAlignSetting>}
  */
-const createUser = async (userBody) => {
-  if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-  }
-  if (await User.isUserNameTaken(userBody.name)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Username already taken');
-  }
-  return User.create(userBody);
+const createPost = async (postBody) => {
+  // if (await User.isEmailTaken(userBody.email)) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  // }
+  // if (await User.isUserNameTaken(userBody.name)) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Username already taken');
+  // }
+  console.log(postBody);
+  return Post.create(postBody);
 };
 
 /**
@@ -26,9 +27,9 @@ const createUser = async (userBody) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const queryUsers = async (filter, options) => {
-  const users = await User.paginate(filter, options);
-  return users;
+const getAllImagesByUserId = async (name) => {
+  const posts = await Post.find({username: name});
+  return posts;
 };
 
 /**
@@ -36,7 +37,7 @@ const queryUsers = async (filter, options) => {
  * @param {ObjectId} id
  * @returns {Promise<User>}
  */
-const getUserById = async (id) => {
+const getPostsByUserId = async (id) => {
   return User.findById(id);
 };
 
@@ -55,7 +56,7 @@ const getUserByEmail = async (email) => {
  * @param {Object} updateBody
  * @returns {Promise<User>}
  */
-const updateUserById = async (userId, updateBody) => {
+const updatePostByUserId = async (userId, updateBody) => {
   const user = await getUserById(userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
@@ -73,20 +74,18 @@ const updateUserById = async (userId, updateBody) => {
  * @param {ObjectId} userId
  * @returns {Promise<User>}
  */
-const deleteUserById = async (userId) => {
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-  await user.remove();
-  return user;
-};
+// const deleteUserById = async (userId) => {
+//   const user = await getUserById(userId);
+//   if (!user) {
+//     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+//   }
+//   await user.remove();
+//   return user;
+// };
 
 module.exports = {
-  createUser,
-  queryUsers,
-  getUserById,
-  getUserByEmail,
-  updateUserById,
-  deleteUserById,
+  createPost,
+  getPostsByUserId,
+  getAllImagesByUserId,
+  updatePostByUserId,
 };

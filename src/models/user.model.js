@@ -10,6 +10,7 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique:true
     },
     email: {
       type: String,
@@ -62,6 +63,17 @@ userSchema.plugin(paginate);
  */
 userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
   const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
+  return !!user;
+};
+
+/**
+ * Check if username is taken
+ * @param {string} username 
+ * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
+ * @returns {Promise<boolean>}
+ */
+ userSchema.statics.isUserNameTaken = async function (name, excludeUserId) {
+  const user = await this.findOne({ name, _id: { $ne: excludeUserId } });
   return !!user;
 };
 

@@ -10,6 +10,7 @@ router
   .route('/')
   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
   .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
+ 
 
 router
   .route('/:userId')
@@ -30,7 +31,7 @@ module.exports = router;
  * @swagger
  * /users:
  *   post:
- *     summary: Create a user
+ *     summary: Crte a user
  *     description: Only admins can create other users.
  *     tags: [Users]
  *     security:
