@@ -1,16 +1,22 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const { authService, userService, tokenService, emailService } = require('../services');
+const { authService, userService, tokenService, emailService, cardService } = require('../services');
 
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
+  cardService.createCard({
+    "title": "DM on instagram",
+    "description": "We can chat in instagram for 10 mins",
+    "price": "200",
+    "isActive": true,
+  }, user.name)
   const tokens = await tokenService.generateAuthTokens(user);
   res.status(httpStatus.CREATED).send({ user, tokens });
 });
 
 const login = catchAsync(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await authService.loginUserWithEmailAndPassword(email, password);
+  const { name, password } = req.body;
+  const user = await authService.loginUserWithNameAndPassword(name, password);
   const tokens = await tokenService.generateAuthTokens(user);
   res.send({ user, tokens });
 });

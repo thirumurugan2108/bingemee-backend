@@ -14,7 +14,6 @@ const createPost = async (postBody) => {
   // if (await User.isUserNameTaken(userBody.name)) {
   //   throw new ApiError(httpStatus.BAD_REQUEST, 'Username already taken');
   // }
-  console.log(postBody);
   return Post.create(postBody);
 };
 
@@ -56,17 +55,15 @@ const getUserByEmail = async (email) => {
  * @param {Object} updateBody
  * @returns {Promise<User>}
  */
-const updatePostByUserId = async (userId, updateBody) => {
+const updatePostById = async (username, updateBody) => {
+  const post =  Post.findById(updateBody.id);
   const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-  if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  if (!post) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'post not found');
   }
   Object.assign(user, updateBody);
-  await user.save();
-  return user;
+  await post.save();
+  return post;
 };
 
 /**
@@ -87,5 +84,5 @@ module.exports = {
   createPost,
   getPostsByUserId,
   getAllImagesByUserId,
-  updatePostByUserId,
+  updatePostById,
 };
