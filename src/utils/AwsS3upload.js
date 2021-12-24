@@ -38,8 +38,9 @@ const upload = multer({
       }
     },
     key: function (req, file, cb) {
-      console.log(req.body);
-      console.log(req.uuid);
+      console.log(file);
+      console.log('req.body');
+      // console.log(req.uuid);
       const id = v4();
       if(req?.isUpdate && req.uuid) {
         cb(null, req.uuid);

@@ -55,15 +55,10 @@ const getUserByEmail = async (email) => {
  * @param {Object} updateBody
  * @returns {Promise<User>}
  */
-const updatePostById = async (username, updateBody) => {
-  const post =  Post.findById(updateBody.id);
-  const user = await getUserById(userId);
-  if (!post) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'post not found');
-  }
-  Object.assign(user, updateBody);
-  await post.save();
-  return post;
+const upsertPost = async (uuid, post) => {
+  const filter = { uuid: uuid };
+  const postResult = await Post.findOneAndUpdate(filter, post, {upsert: true});
+  return postResult;
 };
 
 /**
@@ -84,5 +79,5 @@ module.exports = {
   createPost,
   getPostsByUserId,
   getAllImagesByUserId,
-  updatePostById,
+  upsertPost
 };

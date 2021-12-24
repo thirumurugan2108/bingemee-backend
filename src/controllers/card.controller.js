@@ -11,7 +11,8 @@ const createCard = catchAsync(async (req, res) => {
 });
 
 const getCard = catchAsync(async (req, res) => {
-  const username = req.user?.name;
+  console.log(req?.query?.username);
+  const username = req?.query?.username;
   const result = await cardService.getCard(username);
   res.status(200).send(result);
 });

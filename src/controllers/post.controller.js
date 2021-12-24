@@ -5,7 +5,11 @@ const catchAsync = require('../utils/catchAsync');
 const { userService, postService } = require('../services');
 const upload = require('../utils/AwsS3upload');
 const singleUpload = upload.single("image");
-const { v4  } = require('uuid');
+const Jimp = require('jimp');
+const { v4: uuidv4 } = require('uuid');
+const Aws = require('../utils/Aws');
+const { compress } = require('../utils/jimp');
+const { upsertPost } = require('../services/post.service');
 
 const createPostByUserId = catchAsync(async (req, res) => {
   const username = req.user?.name;
@@ -22,43 +26,54 @@ const getAllPosts = catchAsync(async (req, res) => {
   res.send(result);
 });
 
-const getPostByUserId = catchAsync(async (req, res) => {
+// const getPostByUserId = catchAsync(async (req, res) => {
 
-  // const result = await postService.getAllImagesByUserId(username);
-  const username = req.user?.name;
-  if (!username) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-  res.send('result');
-});
+//   // const result = await postService.getAllImagesByUserId(username);
+//   const username = req.user?.name;
+//   if (!username) {
+//     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+//   }
+//   res.send('result');
+// });
 
 const updatePostByUserId = catchAsync(async (req, res) => {
-  uploadImages(req,res);
+  uploadImages(req, res);
   const post = await postService.updatePostById(req.params.userId, req.body);
   res.send(post);
 });
 
 const uploadImages = catchAsync(async (req, res) => {
-  singleUpload(req, res, async function (err) {
-    if (err) {
-      return res.json({
-        success: false,
-        errors: {
-          title: "Image Upload Error",
-          detail: err.message,
-          error: err,
-        },
-      });
-    }
-    let update = { profilePicture: req.file.location };
-    const user = await postService.createPost({
-      ...req?.body
-      , username: req.user?.name
-      , image: req.file.location
-    });
-    console.log(update);
-    res.status(200).json({ success: true });
-  })
+  const isVideo = req.file.mimetype === 'video/mp4'
+  let result = {};
+  if (!isVideo) {
+    result = await compress(req.file.buffer);
+  } else {
+    result = req.file.buffer; // getting video content
+  }
+  let uuid = "";
+  if (req.body.isUpdate === "false") {
+    uuid = uuidv4().toString();
+  } else {
+    uuid = req.body.uuid;
+  }
+  const photo_url = await Aws.savePhoto(
+    uuid,
+    result,
+    isVideo
+  );
+  const post = {
+    title: req.body.title,
+    price: req.body.price,
+    image: photo_url.Location,
+    uuid: uuid,
+    username: req.user?.name,
+    isVideo: isVideo
+  };
+   await upsertPost(uuid, post);
+   console.log(uuid);
+  res.send({
+    message: "success"
+  });
 }
 );
 
@@ -66,7 +81,6 @@ const uploadImages = catchAsync(async (req, res) => {
 module.exports = {
   createPostByUserId,
   getAllPosts,
-  getPostByUserId,
   updatePostByUserId,
   uploadImages
 };

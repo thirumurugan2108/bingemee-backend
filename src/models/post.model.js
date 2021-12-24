@@ -24,6 +24,14 @@ const postSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    uuid: {
+      type:String,
+      required: true,
+    },
+    isVideo :{
+      type: Boolean,
+      required: true
+    }
   },
   {
     timestamps: true,
