@@ -26,8 +26,8 @@ const createPost = async (postBody) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const getAllImagesByUserId = async (name) => {
-  const posts = await Post.find({username: name});
+const getAllImagesByUserId = async (name, isVideo) => {
+  const posts = await Post.find({username: name, isVideo: isVideo});
   return posts;
 };
 

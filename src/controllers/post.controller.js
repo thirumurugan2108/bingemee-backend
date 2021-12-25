@@ -20,9 +20,9 @@ const createPostByUserId = catchAsync(async (req, res) => {
 
 const getAllPosts = catchAsync(async (req, res) => {
   const username = req.user?.name;
-  // const filter = pick(req.query, ['name', 'role']);
-  // const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await postService.getAllImagesByUserId(username);
+  const isVideo = req.query.isVideo;
+  console.log(req.query);
+  const result = await postService.getAllImagesByUserId(username, isVideo);
   res.send(result);
 });
 
@@ -69,8 +69,8 @@ const uploadImages = catchAsync(async (req, res) => {
     username: req.user?.name,
     isVideo: isVideo
   };
-   await upsertPost(uuid, post);
-   console.log(uuid);
+  await upsertPost(uuid, post);
+  console.log(uuid);
   res.send({
     message: "success"
   });
