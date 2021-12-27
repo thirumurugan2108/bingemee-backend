@@ -6,7 +6,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(auth('createOrders'),  paymentController.createOrders)
-  .post(auth('paymentSuccess'),  paymentController.paymentSuccess)
+  .get(paymentController.createOrders)
+  .post(paymentController.paymentSuccess)
 
 module.exports = router;

@@ -11,22 +11,23 @@ const createOrders = catchAsync(async (req, res) => {
 
     try {
         const instance = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_SECRET,
+            key_id: 'rzp_test_6mQa7wgUCs49Is',
+            key_secret: '97ZXU8XaPGrOsqVyf0ZC7yon',
         });
 
         const options = {
             amount: 50000, // amount in smallest currency unit
             currency: "INR",
-            receipt: "receipt_order_74394",
+            receipt: "7411012",
         };
 
         const order = await instance.orders.create(options);
 
         if (!order) return res.status(500).send("Some error occured");
-
+        console.log(order);
         res.json(order);
-    } catch (error) {
+    } catch (error) { 
+        console.log(error);
         res.status(500).send(error);
     }
 });
