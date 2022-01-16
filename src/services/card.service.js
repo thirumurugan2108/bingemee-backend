@@ -20,11 +20,18 @@ const updateCardStatus = async (username, cardData) => {
 
 const getCard =  async (username)=> {
   const filter = { user_name: username };
-  const cardResult = await Card.findOne(filter);
+  const cardResult = await Card.find(filter);
   return cardResult;
 }
+
+const findCardById =  async (id)=> {
+  const cardResult = await Card.findById(id);
+  return cardResult;
+}
+
 module.exports = {
   createCard,
   updateCardStatus,
-  getCard
+  getCard,
+  findCardById
 };

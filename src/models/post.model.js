@@ -20,7 +20,7 @@ const postSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    image: {
+    fileUrl: {
       type: String,
       required: true,
     },
@@ -31,6 +31,10 @@ const postSchema = mongoose.Schema(
     isVideo :{
       type: Boolean,
       required: true
+    },
+    extensionName: {
+      type:String,
+      required: true,
     }
   },
   {

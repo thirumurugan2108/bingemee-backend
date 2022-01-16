@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { userService } = require('../services');
+const { userService, cardService, postService } = require('../services');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -34,10 +34,24 @@ const deleteUser = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getUserDetials = catchAsync(async (req, res) => {
+  const user = await userService.getUserByName(req?.query?.username);
+  const cardList = await cardService.getCard(req?.query?.username);
+  const postList = await postService.getAllPostsByUsername(req?.query?.username);
+  const result = {
+    user,
+    cardList,
+    images: postList?.images,
+    videos: postList?.videos
+  }
+  res.send(result);
+});
+
 module.exports = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  getUserDetials
 };

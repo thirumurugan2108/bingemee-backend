@@ -26,18 +26,38 @@ const createPost = async (postBody) => {
  * @param {number} [options.page] - Current page (default = 1)
  * @returns {Promise<QueryResult>}
  */
-const getAllImagesByUserId = async (name, isVideo) => {
-  const posts = await Post.find({username: name, isVideo: isVideo});
-  return posts;
+const findPostsByUsername = async (name) => {
+  const posts = await Post.find({ username: name });
+
+  let images = [];
+  let videos = [];
+  posts.forEach(element => {
+    if (!element.isVideo) {
+      images.push(element);
+    } else {
+      videos.push(element);
+    }
+  });
+  const result = {
+    images: images,
+    videos: videos
+  };
+  return result;
 };
 
+const updatePostById = async (id, post) => {
+   const result = Post.findByIdAndUpdate(id,post);
+   return result;
+};
 /**
  * Get user by id
  * @param {ObjectId} id
  * @returns {Promise<User>}
  */
-const getPostsByUserId = async (id) => {
-  return User.findById(id);
+const getPostsById = async (id) => {
+  const test = await Post.findById(id)
+  console.log(test);
+  return test;
 };
 
 /**
@@ -57,7 +77,7 @@ const getUserByEmail = async (email) => {
  */
 const upsertPost = async (uuid, post) => {
   const filter = { uuid: uuid };
-  const postResult = await Post.findOneAndUpdate(filter, post, {upsert: true});
+  const postResult = await Post.findOneAndUpdate(filter, post, { upsert: true });
   return postResult;
 };
 
@@ -75,9 +95,35 @@ const upsertPost = async (uuid, post) => {
 //   return user;
 // };
 
+const getAllPostsByUsername = async (username) => {
+  const filter = { username: username };
+  const postResult = await Post.find(filter);
+  let images = [];
+  let videos = [];
+  postResult.forEach(element => {
+    const filteredElement = {
+      title: element.title,
+      price: element.price,
+      isPaid: element.isPaid,
+      id: element.id
+    }
+    if (!element.isVideo) {
+      images.push(filteredElement);
+    } else {
+      videos.push(filteredElement);
+    }
+  });
+  const result = {
+    images: images,
+    videos: videos
+  };
+  return result;
+};
 module.exports = {
   createPost,
-  getPostsByUserId,
-  getAllImagesByUserId,
+  getPostsById,
+  findPostsByUsername,
+  getAllPostsByUsername,
+  updatePostById,
   upsertPost
 };

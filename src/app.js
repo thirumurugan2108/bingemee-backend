@@ -2,6 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
+var bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
@@ -32,6 +33,8 @@ app.use(express.urlencoded({limit: '50mb', extended: true }));
 
 app.use(express.json({limit: '50mb'}));
 
+// app.use(bodyParser.json({limit: '50mb'}));
+// app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 // sanitize request data
 app.use(xss());
 app.use(mongoSanitize());
