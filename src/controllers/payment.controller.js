@@ -11,10 +11,8 @@ const crypto = require('crypto');
 const createOrders = catchAsync(async (req, res) => {
     const { username, id, isCard } = req?.query;
 
-    console.log(username, id, isCard);
     
     let result = await getproductDetails(isCard === 'true', id);
-    console.log(result);
     try {
         const instance = new Razorpay({
             key_id: 'rzp_test_6mQa7wgUCs49Is',
@@ -30,7 +28,6 @@ const createOrders = catchAsync(async (req, res) => {
         const order = await instance.orders.create(options);
 
         if (!order) return res.status(500).send("Some error occured");
-        console.log(order);
         res.json({ ...order, price: result.price * 100 });
     } catch (error) {
         console.log(error);
@@ -70,19 +67,24 @@ const paymentVerification = catchAsync(async (req, res) => {
         console.log(productDetails, buyerDetails);
 
         let result = await getproductDetails(isCard, productDetails.productid);
+
+        // res.send({
+        //     message: "success"
+        //   });
         console.log(result);
+        console.log(isCard);
         if(isCard) {
-            res.json({
+            res.status(200).send({
                 msg: "success",
                 orderId: razorpayOrderId,
                 paymentId: razorpayPaymentId,
             });
         } else {
-            res.json({
+            res.status(200).send({
                 msg: "success",
                 orderId: razorpayOrderId,
                 paymentId: razorpayPaymentId,
-                fileurl:result.image,
+                fileurl:result.fileUrl,
                 isVideo:result.isVideo
             });
         }
