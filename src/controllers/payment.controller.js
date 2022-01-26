@@ -7,6 +7,7 @@ const { userService, postService, cardService } = require('../services');
 
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
+const { createpaymentDetail } = require('../services/payment.service');
 
 const createOrders = catchAsync(async (req, res) => {
     const { username, id, isCard } = req?.query;
@@ -73,6 +74,18 @@ const paymentVerification = catchAsync(async (req, res) => {
         //   });
         console.log(result);
         console.log(isCard);
+
+        const paymentDetail = {
+            buyerPhoneNumber: buyerDetails.buyerPhoneNumber ,
+            buyerDetails:buyerDetails,
+            productId:productDetails.productid,
+            productDetails: result,
+            razorpayOrderId: razorpayOrderId,
+            razorpayPaymentId: razorpayPaymentId,
+            razorpaySignature: razorpaySignature
+        };
+
+        await createpaymentDetail(paymentDetail);
         if(isCard) {
             res.status(200).send({
                 msg: "success",
@@ -89,6 +102,8 @@ const paymentVerification = catchAsync(async (req, res) => {
             });
         }
     } catch (error) {
+        console.log(error);
+        
         res.status(500).send(error);
     }
 });

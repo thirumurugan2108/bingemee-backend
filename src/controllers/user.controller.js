@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService, cardService, postService } = require('../services');
+const { saveProfilePhoto } = require('../utils/Aws');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -47,11 +48,47 @@ const getUserDetials = catchAsync(async (req, res) => {
   res.send(result);
 });
 
+const uploadProfilePhoto = catchAsync(async (req, res) => {
+
+  // if (req.body.isFileUpdate === "true") {
+  const isVideo = req.file.mimetype === 'video/mp4';
+  const username = req.user?.name;
+  const userId = req.user?._id;
+  if (isVideo) {
+    return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
+  }
+
+  let resultFileToUpload = await compress(req.file.buffer);
+
+  let uuid = "";
+  if (req.body.uuid == undefined) {
+    uuid = uuidv4().toString();
+  } else {
+    uuid = req.body.uuid;
+  }
+
+  const photo_url = await Aws.saveProfilePhoto(
+    username,
+    resultFileToUpload
+  );
+  console.log(photo_url.Location);
+  const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
+  photo_url.Location + '?clearCache=' + generateUniqueId
+
+  await updateUserById(userId, { photoUel: photo_url.Location + '?clearCache=' + generateUniqueId });
+  // await upsertPost(uuid, post);
+  res.send({
+    message: "success"
+  });
+}
+);
+
 module.exports = {
   createUser,
   getUsers,
   getUser,
   updateUser,
   deleteUser,
-  getUserDetials
+  getUserDetials,
+  uploadProfilePhoto
 };

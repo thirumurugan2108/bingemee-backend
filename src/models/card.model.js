@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const { toJSON } = require('./plugins');
 
 const cardSchema = mongoose.Schema(
   {
@@ -38,7 +38,7 @@ const cardSchema = mongoose.Schema(
 
 // add plugin that converts mongoose to json
 cardSchema.plugin(toJSON);
-cardSchema.plugin(paginate);
+// cardSchema.plugin(paginate);
 
 /**
  * @typedef Card
