@@ -28,7 +28,7 @@ const defaultRoutes = [
   },
   {
     path: '/cards',
-    route: cardsRoute,
+    route: cardsRoute ,
   }
 ];
 

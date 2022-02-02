@@ -41,6 +41,10 @@ const getAllPosts = catchAsync(async (req, res) => {
 const uploadPostWithImage = catchAsync(async (req, res) => {
 
   // if (req.body.isFileUpdate === "true") {
+    // console.log(req.file.mimetype);
+    // if(req.file.mimetype.includes('svg')){
+    //   ret
+    // }
   const isVideo = req.file.mimetype === 'video/mp4'
   let resultFileToUpload = {};
   if (!isVideo) {

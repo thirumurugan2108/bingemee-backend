@@ -1,5 +1,6 @@
 const allRoles = {
   user: [],
+  influencer: [],
   admin: ['getUsers', 'manageUsers'],
 };
 

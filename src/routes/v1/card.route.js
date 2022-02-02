@@ -7,7 +7,7 @@ const router = express.Router();
 router
   .route('/')
   .post(auth('createCard'),  cardController.createCard)
-  .get(cardController.getCard)
+  .get(auth('createCard'),cardController.getCard)
   .patch(auth('updateCard'), cardController.updateCardStatus)
 
 

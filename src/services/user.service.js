@@ -65,15 +65,22 @@ const getUserByEmail = async (email) => {
  * @param {Object} updateBody
  * @returns {Promise<User>}
  */
-const updateUserById = async (userId, updateBody) => {
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-  }
-  if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
-  }
-  Object.assign(user, updateBody);
+const updateUserById = async (user, updateBody) => {
+  // const user = await getUserById(userId);
+  // if (!user) {
+  //   throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  // }
+  // if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  // }
+  user.photoUrl = updateBody.photoUrl;
+  // Object.assign(user, updateBody);
+  // const filter = { user_name: username };
+  // const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
+  // const result = await User.findOneAndUpdate({name: username},updateBody);
+  // const result = await User.updateOne({ _id: ObjectId(userId) },updateBody);
+  // console.log(user.toString());
+  // console.log(updateBody);
   await user.save();
   return user;
 };

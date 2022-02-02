@@ -11,15 +11,16 @@ const createCard = catchAsync(async (req, res) => {
 });
 
 const getCard = catchAsync(async (req, res) => {
-  console.log(req?.query?.username);
-  const username = req?.query?.username;
+  const username = req?.user?.name;
+  console.log(username);
   const result = await cardService.getCard(username);
+  console.log(result);
   res.status(200).send(result);
 });
 
 const updateCardStatus = catchAsync(async (req, res) => {
-  const username = req.user?.name;
-  const result = await cardService.updateCardStatus(username, req?.body);
+  // const username = req.user?.name;
+  const result = await cardService.updateCardStatus(req?.body?.id, req?.body);
   res.send(result);
 });
 

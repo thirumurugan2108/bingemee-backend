@@ -1,9 +1,18 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
+const ApiError = require('../utils/ApiError');
 const { authService, userService, tokenService, emailService, cardService } = require('../services');
 
 const register = catchAsync(async (req, res) => {
-  const user = await userService.createUser(req.body);
+  const body = {
+    ...req?.body,
+    role: "influencer",
+    total:0,
+    paid:0,
+    balance:0
+  }
+
+  const user = await userService.createUser(body);
   cardService.createCard({
     "title": "DM on instagram",
     "description": "We can chat in instagram for 10 mins",
@@ -17,6 +26,9 @@ const register = catchAsync(async (req, res) => {
 const login = catchAsync(async (req, res) => {
   const { name, password } = req.body;
   const user = await authService.loginUserWithNameAndPassword(name, password);
+  if(!user.isEmailVerified) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Username is not verified yet  ');
+  }
   const tokens = await tokenService.generateAuthTokens(user);
   res.send({ user, tokens });
 });

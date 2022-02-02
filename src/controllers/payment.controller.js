@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { userService, postService, cardService } = require('../services');
+const { userService, postService, cardService, paymentservice } = require('../services');
 
 
 const Razorpay = require("razorpay");
@@ -74,7 +74,10 @@ const paymentVerification = catchAsync(async (req, res) => {
         //   });
         console.log(result);
         console.log(isCard);
-
+        let status = 'success';
+        if(isCard) {
+            status = 'pending'
+        }
         const paymentDetail = {
             buyerPhoneNumber: buyerDetails.buyerPhoneNumber ,
             buyerDetails:buyerDetails,
@@ -82,7 +85,10 @@ const paymentVerification = catchAsync(async (req, res) => {
             productDetails: result,
             razorpayOrderId: razorpayOrderId,
             razorpayPaymentId: razorpayPaymentId,
-            razorpaySignature: razorpaySignature
+            razorpaySignature: razorpaySignature,
+            influencer:productDetails.username,
+            status: status,
+            isCard:isCard
         };
 
         await createpaymentDetail(paymentDetail);
@@ -108,12 +114,49 @@ const paymentVerification = catchAsync(async (req, res) => {
     }
 });
 
+const getPaymentDetails = catchAsync(async (req, res) => {
+    try {
+        // getting the details back from our font-end
+        const user = req.user;
+        const username = user?.name;
+        const pendingJobs = await paymentservice.getPendingJobs(username);
+        const successJobs = await paymentservice.getSuccessJobs(username);
 
+        const result = {
+            pendingJobs,
+            successJobs,
+            totalRevenue: user.total,
+            paid: user.paid,
+            balance: user.balance
+        }
+        res.status(200).send(result);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
+
+const updatePaymentStatus = catchAsync(async (req, res) => {
+    try {
+        // getting the details back from our font-end
+        const body = req.body;
+        const result = await paymentservice.updatePaymentStatus(body.id, body.status);
+
+        res.status(200).send({
+            message: "status has been updated successfully"
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
 
 
 module.exports = {
     createOrders,
+    getPaymentDetails,
     paymentSuccess: paymentVerification,
+    updatePaymentStatus
 };
 async function getproductDetails(isCard, id) {
     let result = {};

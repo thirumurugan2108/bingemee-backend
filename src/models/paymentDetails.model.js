@@ -40,6 +40,21 @@ const paymentDetailSchema = mongoose.Schema(
             required: true,
             default: true,
         },
+        status: {
+            type: String,
+            required: true,
+            default: 'pending',
+        },
+        influencer: {
+            type: String,
+            required: true,
+        },
+        isCard: {
+            type: Boolean,
+            required:true,
+            default: false
+
+        }
     },
     {
         timestamps: true,

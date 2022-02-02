@@ -26,7 +26,7 @@ class Aws {
 
     const par = {
       Bucket: 'bingmee1',
-      Key: `${filename}/${filename}`,
+      Key: `profile/${filename}`,
       ACL: "public-read",
       Body: fileContent,
     };

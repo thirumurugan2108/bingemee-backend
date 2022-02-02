@@ -4,6 +4,8 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService, cardService, postService } = require('../services');
 const { saveProfilePhoto } = require('../utils/Aws');
+const { compress } = require('../utils/jimp');
+const { v4: uuidv4 } = require('uuid');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -14,11 +16,12 @@ const getUsers = catchAsync(async (req, res) => {
   // const filter = pick(req.query, ['name', 'role']);
   // const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await userService.queryUsers({}, {});
+
   res.send(result);
 });
 
 const getUser = catchAsync(async (req, res) => {
-  const user = await userService.getUserById(req.params.userId);
+  const user = req.user;
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
@@ -54,6 +57,7 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
   const isVideo = req.file.mimetype === 'video/mp4';
   const username = req.user?.name;
   const userId = req.user?._id;
+  console.log(userId);
   if (isVideo) {
     return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
   }
@@ -67,7 +71,7 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
     uuid = req.body.uuid;
   }
 
-  const photo_url = await Aws.saveProfilePhoto(
+  const photo_url = await saveProfilePhoto(
     username,
     resultFileToUpload
   );
@@ -75,7 +79,7 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
   const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
   photo_url.Location + '?clearCache=' + generateUniqueId
 
-  await updateUserById(userId, { photoUel: photo_url.Location + '?clearCache=' + generateUniqueId });
+  await userService.updateUserById(req.user, { photoUrl: photo_url.Location + '?clearCache=' + generateUniqueId });
   // await upsertPost(uuid, post);
   res.send({
     message: "success"

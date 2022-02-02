@@ -1,3 +1,5 @@
+// const { mongoose } = require('../config/config');
+const { Mongoose } = require('mongoose');
 const { Card } = require('../models');
 
 /**
@@ -12,9 +14,11 @@ const createCard = async (cardBody, username) => {
   // return Card.create({...cardBody, user_name: username});
 };
 
-const updateCardStatus = async (username, cardData) => {
-  const filter = { user_name: username };
-  const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
+const updateCardStatus = async (id, cardData) => {
+  // const filter = { user_name: username };
+  // var _id = Mongoose.Types.ObjectId.fromString(id);
+  const cardResult = Card.findByIdAndUpdate({_id: id}, cardData);
+  // const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
   return cardResult;
 };
 

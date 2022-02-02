@@ -12,6 +12,11 @@ const userSchema = mongoose.Schema(
       trim: true,
       unique:true
     },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -45,6 +50,22 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    photoUrl: {
+      type: String,
+      default:'https://bingmee1.s3.ap-south-1.amazonaws.com/profile/defaultprof.jpg'
+    },
+    total: {
+      type: Number,
+      default:0,
+    },
+    paid: {
+      type: Number,
+      default:0,
+    },
+    balance: {
+      type: Number,
+      default:0,
+    }
   },
   {
     timestamps: true,
@@ -73,7 +94,7 @@ userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
  * @returns {Promise<boolean>}
  */
  userSchema.statics.isUserNameTaken = async function (name, excludeUserId) {
-  const user = await this.findOne({ name, _id: { $ne: excludeUserId } });
+  const user = await this.findOne({ name: name, _id: { $ne: excludeUserId } });
   return !!user;
 };
 

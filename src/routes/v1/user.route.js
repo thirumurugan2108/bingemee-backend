@@ -4,6 +4,10 @@ const validate = require('../../middlewares/validate');
 const userValidation = require('../../validations/user.validation');
 const userController = require('../../controllers/user.controller');
 
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const router = express.Router();
 
 router.
@@ -13,7 +17,14 @@ router.
 router
   .route('/')
   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
-  .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
+  .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUser);
+
+  // router
+  // .route('/uploadphoto')
+  // .post(auth('uploadphoto'), upload.single('file'), userController.uploadPostWithImage);
+  router
+  .route('/uploadphoto')
+  .post(auth('uploadphoto'), upload.single('file'), userController.uploadProfilePhoto)
 
 
 router
