@@ -18,7 +18,6 @@ const { upsertPost } = require('../services/post.service');
 
 const getAllPosts = catchAsync(async (req, res) => {
   const username = req.user?.name;
-  console.log(req.query);
   const result = await postService.findPostsByUsername(username);
   res.send(result);
 });
@@ -41,7 +40,6 @@ const getAllPosts = catchAsync(async (req, res) => {
 const uploadPostWithImage = catchAsync(async (req, res) => {
 
   // if (req.body.isFileUpdate === "true") {
-    // console.log(req.file.mimetype);
     // if(req.file.mimetype.includes('svg')){
     //   ret
     // }
@@ -65,11 +63,11 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
     resultFileToUpload,
     isVideo
   );
-  console.log(req.body, uuid, photo_url.Location);
   const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
   const post = {
     title: req.body.title,
     price: req.body.price,
+    isPaid: req.body.isPaid,
     extensionName: req.body.extensionName,
     fileUrl: photo_url.Location + '?clearCache=' + generateUniqueId,
     uuid: uuid,

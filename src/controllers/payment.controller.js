@@ -31,7 +31,6 @@ const createOrders = catchAsync(async (req, res) => {
         if (!order) return res.status(500).send("Some error occured");
         res.json({ ...order, price: result.price * 100 });
     } catch (error) {
-        console.log(error);
         res.status(500).send(error);
     }
 });
@@ -65,15 +64,9 @@ const paymentVerification = catchAsync(async (req, res) => {
 
         // THE PAYMENT IS LEGIT & VERIFIED
         // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
-        console.log(productDetails, buyerDetails);
 
         let result = await getproductDetails(isCard, productDetails.productid);
 
-        // res.send({
-        //     message: "success"
-        //   });
-        console.log(result);
-        console.log(isCard);
         let status = 'success';
         if(isCard) {
             status = 'pending'
@@ -108,7 +101,6 @@ const paymentVerification = catchAsync(async (req, res) => {
             });
         }
     } catch (error) {
-        console.log(error);
         
         res.status(500).send(error);
     }
@@ -123,6 +115,7 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         const successJobs = await paymentservice.getSuccessJobs(username);
 
         const result = {
+            username,   
             pendingJobs,
             successJobs,
             totalRevenue: user.total,
@@ -131,7 +124,6 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         }
         res.status(200).send(result);
     } catch (error) {
-        console.log(error);
         res.status(500).send(error);
     }
 });
@@ -146,7 +138,6 @@ const updatePaymentStatus = catchAsync(async (req, res) => {
             message: "status has been updated successfully"
         });
     } catch (error) {
-        console.log(error);
         res.status(500).send(error);
     }
 });

@@ -57,7 +57,6 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
   const isVideo = req.file.mimetype === 'video/mp4';
   const username = req.user?.name;
   const userId = req.user?._id;
-  console.log(userId);
   if (isVideo) {
     return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
   }
@@ -75,7 +74,6 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
     username,
     resultFileToUpload
   );
-  console.log(photo_url.Location);
   const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
   photo_url.Location + '?clearCache=' + generateUniqueId
 

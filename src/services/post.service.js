@@ -101,11 +101,15 @@ const getAllPostsByUsername = async (username) => {
   let images = [];
   let videos = [];
   postResult.forEach(element => {
-    const filteredElement = {
+    let filteredElement = {
       title: element.title,
       price: element.price,
       isPaid: element.isPaid,
-      id: element.id
+      id: element.id,
+      
+    }
+    if(element.isPaid === 'No') {
+      filteredElement.fileUrl = element.fileUrl;
     }
     if (!element.isVideo) {
       images.push(filteredElement);

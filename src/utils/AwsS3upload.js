@@ -13,7 +13,6 @@ aws.config.update({
 });
 
 const fileFilter = (req, file, cb) => {
-  console.log(file);
   if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
     cb(null, true);
   } else {
@@ -28,8 +27,6 @@ const upload = multer({
     s3,
     bucket: 'bingmee1',
     metadata: function (req, file, cb) {
-      // console.log(req);
-      // console.log(req.uuid);
       const id = v4();
       if(req?.isUpdate && req.uuid) {
         cb(null, { fieldName: req.uuid });
@@ -38,9 +35,6 @@ const upload = multer({
       }
     },
     key: function (req, file, cb) {
-      console.log(file);
-      console.log('req.body');
-      // console.log(req.uuid);
       const id = v4();
       if(req?.isUpdate && req.uuid) {
         cb(null, req.uuid);

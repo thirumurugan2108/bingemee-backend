@@ -32,6 +32,11 @@ const postSchema = mongoose.Schema(
       type: Boolean,
       required: true
     },
+    isPaid :{
+      type: String,
+      required: true,
+      default:"Yes"
+    },
     extensionName: {
       type:String,
       required: true,
