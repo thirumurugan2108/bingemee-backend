@@ -56,7 +56,6 @@ const updatePostById = async (id, post) => {
  */
 const getPostsById = async (id) => {
   const test = await Post.findById(id)
-  console.log(test);
   return test;
 };
 
@@ -97,7 +96,7 @@ const upsertPost = async (uuid, post) => {
 
 const getAllPostsByUsername = async (username) => {
   const filter = { username: username };
-  const postResult = await Post.find(filter);
+  const postResult = await Post.find(filter).sort({ 'updatedAt' : -1});;
   let images = [];
   let videos = [];
   postResult.forEach(element => {

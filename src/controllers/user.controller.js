@@ -61,7 +61,8 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
     return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
   }
 
-  let resultFileToUpload = await compress(req.file.buffer);
+  let resultFileToUpload = req.file.buffer;
+  // let resultFileToUpload = await compress(req.file.buffer);
 
   let uuid = "";
   if (req.body.uuid == undefined) {

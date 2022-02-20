@@ -16,8 +16,8 @@ const createOrders = catchAsync(async (req, res) => {
     let result = await getproductDetails(isCard === 'true', id);
     try {
         const instance = new Razorpay({
-            key_id: 'rzp_test_6mQa7wgUCs49Is',
-            key_secret: '97ZXU8XaPGrOsqVyf0ZC7yon',
+            key_id: 'rzp_live_kSqk8k2TEX0otB',
+            key_secret: 'UuIHrNoL8RoB0F0w27Wpwc4F',
         });
 
         const options = {
@@ -52,7 +52,7 @@ const paymentVerification = catchAsync(async (req, res) => {
         // The format should be like this:
         // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
 
-        const shasum = crypto.createHmac("sha256", "97ZXU8XaPGrOsqVyf0ZC7yon");
+        const shasum = crypto.createHmac("sha256", "UuIHrNoL8RoB0F0w27Wpwc4F");
 
         shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
 

@@ -46,7 +46,8 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
   const isVideo = req.file.mimetype === 'video/mp4'
   let resultFileToUpload = {};
   if (!isVideo) {
-    resultFileToUpload = await compress(req.file.buffer);
+    resultFileToUpload = req.file.buffer;
+    // resultFileToUpload = await compress(req.file.buffer);
   } else {
     resultFileToUpload = req.file.buffer; // getting video content
   }

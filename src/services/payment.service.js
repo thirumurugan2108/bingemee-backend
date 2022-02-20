@@ -16,7 +16,7 @@ const getPendingJobs = async (username) => {
     influencer:username,
     status: "pending"
   }
-  const PaymentDetailResult = await PaymentDetails.find(filter).sort({ 'createdAt' : -1});
+  const PaymentDetailResult = await PaymentDetails.find(filter).sort({ 'updatedAt' : -1});
   return PaymentDetailResult;
   // return Card.create({...cardBody, user_name: username});
 };
@@ -35,7 +35,7 @@ const getSuccessJobs = async (username) => {
     status: "success",
     isCard: 'true'
   }
-  const PaymentDetailResult = await PaymentDetails.find(filter).sort({ 'createdAt' : -1});
+  const PaymentDetailResult = await PaymentDetails.find(filter).sort({ 'updatedAt' : -1});
   return PaymentDetailResult;
 };
 
