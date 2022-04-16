@@ -7,7 +7,7 @@ const ApiError = require('../utils/ApiError');
  * @param {Object} userBody
  * @returns {Promise<User>}
  */
-const createUser = async (userBody) => {
+const createInfluencer = async (userBody) => {
   // if (await User.isEmailTaken(userBody.email)) {
   //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   // }
@@ -16,6 +16,29 @@ const createUser = async (userBody) => {
   }
   return User.create(userBody);
 };
+
+const createUser = async (userBody) => {
+  userBody.fullName = userBody.name
+  userBody.password = 't12456567'
+  if (await User.isEmailTaken(userBody.email)) {
+    console.log("asdasd")
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  // if (await User.isUserNameTaken(userBody.name)) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Username already taken');
+  // }
+  return User.create(userBody);
+};
+
+const validateOtp = async(email, otp, type) => {
+  // console.log(email)
+  // console.log(otp)
+  const user = await User.validateOtp(email, otp, type);
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Please enter the valid OTP');
+  }
+  return user
+}
 
 /**
  * Query for users
@@ -58,7 +81,10 @@ const getUserByEmail = async (email) => {
   return User.findOne({ name: name });
 };
 
-
+const loginWithOTP = async (email, otp) => {
+  const userData = await User.updateOtp(email, otp)
+  return true
+}
 /**
  * Update user by id
  * @param {ObjectId} userId
@@ -107,4 +133,7 @@ module.exports = {
   getUserByName,
   updateUserById,
   deleteUserById,
+  validateOtp,
+  getUserByEmail,
+  loginWithOTP,
 };
