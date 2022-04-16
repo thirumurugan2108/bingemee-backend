@@ -94,7 +94,7 @@ const upsertPost = async (uuid, post) => {
 //   return user;
 // };
 
-const getAllPostsByUsername = async (username) => {
+const getAllPostsByUsername = async (username, purchasedProducts = []) => {
   const filter = { username: username };
   const postResult = await Post.find(filter).sort({ 'updatedAt' : -1});;
   let images = [];
@@ -105,9 +105,8 @@ const getAllPostsByUsername = async (username) => {
       price: element.price,
       isPaid: element.isPaid,
       id: element.id,
-      
     }
-    if(element.isPaid === 'No') {
+    if(element.isPaid === 'No' || purchasedProducts.indexOf(element.id) != -1) {
       filteredElement.fileUrl = element.fileUrl;
     }
     if (!element.isVideo) {

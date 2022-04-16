@@ -41,6 +41,18 @@ const userSchema = mongoose.Schema(
       },
       private: true, // used by the toJSON plugin
     },
+    otp: {
+      type: String,
+      default: '',
+    },
+    otpSentTime: {
+      type: String,
+      default: '',
+    },
+    mobile: {
+      type: String,
+      default: '',
+    },
     role: {
       type: String,
       enum: roles,
@@ -115,6 +127,23 @@ userSchema.pre('save', async function (next) {
   }
   next();
 });
+
+userSchema.statics.updateOtp = async function (email, otp) {
+  const user = await this.findOne({ email });
+  const result = await User.updateOne({ email} , { otp, otpSentTime: Date.now() });
+  return user
+}
+
+userSchema.statics.validateOtp = async function (email, otp, type) {
+  const user = await this.findOne({ email, otp });
+  if (user && type =='signup') {
+    const result = await User.updateOne({ email} , { otp: '', otpSentTime: '', isEmailVerified: true});
+  }
+  else {
+    const result = await User.updateOne({email} , { otp: '', otpSentTime: '' });
+  }
+  return user
+}
 
 /**
  * @typedef User

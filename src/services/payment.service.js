@@ -39,9 +39,19 @@ const getSuccessJobs = async (username) => {
   return PaymentDetailResult;
 };
 
+const getUserPaymentProductIds = async (email) => {
+  const productIds = []
+  const PaymentDetailResult = await PaymentDetails.find({'buyerDetails.buyerEmailId':email, status: "success"});
+  PaymentDetailResult.map(pay => {
+    productIds.push(pay.productId)
+  })  
+  return productIds;
+}
+
 module.exports = {
   createpaymentDetail,
   getPendingJobs,
   getSuccessJobs,
-  updatePaymentStatus
+  updatePaymentStatus,
+  getUserPaymentProductIds
 };

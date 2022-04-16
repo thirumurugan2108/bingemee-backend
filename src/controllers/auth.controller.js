@@ -1,18 +1,18 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const ApiError = require('../utils/ApiError');
-const { authService, userService, tokenService, emailService, cardService } = require('../services');
+const { authService, userService, tokenService, emailService, cardService, paymentservice } = require('../services');
 
 const register = catchAsync(async (req, res) => {
   const body = {
-    ...req?.body,
+    ...req.body,
     role: "influencer",
     total:0,
     paid:0,
     balance:0
   }
 
-  const user = await userService.createUser(body);
+  const user = await userService.createInfluencer(body);
   cardService.createCard({
     "title": "DM on instagram",
     "description": "We can chat in instagram for 10 mins",
@@ -21,6 +21,56 @@ const register = catchAsync(async (req, res) => {
   }, user.name)
   const tokens = await tokenService.generateAuthTokens(user);
   res.status(httpStatus.CREATED).send({ user, tokens });
+});
+
+const sendLoginOtp = catchAsync(async (req, res) => {
+  const user = await userService.getUserByEmail(req.body.email)
+
+  if (user) {
+    const otp = await emailService.sendOTP(user.email, user.name)
+    const updateStatus = await userService.loginWithOTP(user.email, otp)
+    if (updateStatus == true) {
+      res.status(httpStatus.CREATED).send(true);
+    }
+    else {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Unable to update OTP');
+    }
+  }
+  else {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is not registered with us.');
+  }
+})
+
+const userRegister = catchAsync(async (req, res) => {
+  //const tokens = await tokenService.generateAuthTokens(user);
+  const otp = await emailService.sendOTP(req.body.email, req.body.name)
+  console.log(req.body)
+  const body = {
+    ...req.body,
+    role: "user",
+    otp,
+    otpSentTime: Date.now(),
+    total:0,
+    paid:0,
+    balance:0
+  }
+  const user = await userService.createUser(body);
+  res.status(httpStatus.CREATED).send(true);
+});
+
+const registerVerifyOtp = catchAsync(async (req, res) => {
+  const {email, otp} = req.body
+  const user = await userService.validateOtp(email, otp, 'signup')
+  const paidProductIds = await paymentservice.getUserPaymentProductIds(email)
+  const tokens = await tokenService.generateAuthTokens(user)
+  res.status(httpStatus.CREATED).send({ user, tokens, paidProductIds })
+});
+const verifyOtp = catchAsync(async (req, res) => {
+  const {email, otp} = req.body
+  const user = await userService.validateOtp(email, otp, 'login')
+  const paidProductIds = await paymentservice.getUserPaymentProductIds(email)
+  const tokens = await tokenService.generateAuthTokens(user)
+  res.status(httpStatus.CREATED).send({ user, tokens, paidProductIds })
 });
 
 const login = catchAsync(async (req, res) => {
@@ -74,4 +124,8 @@ module.exports = {
   resetPassword,
   sendVerificationEmail,
   verifyEmail,
+  userRegister,
+  registerVerifyOtp,
+  verifyOtp,
+  sendLoginOtp,
 };

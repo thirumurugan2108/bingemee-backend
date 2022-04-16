@@ -2,13 +2,13 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { userService, cardService, postService } = require('../services');
+const { userService, cardService, postService, tokenService, paymentservice } = require('../services');
 const { saveProfilePhoto } = require('../utils/Aws');
 const { compress } = require('../utils/jimp');
 const { v4: uuidv4 } = require('uuid');
 
 const createUser = catchAsync(async (req, res) => {
-  const user = await userService.createUser(req.body);
+  const user = await userService.createInfluencer(req.body);
   res.status(httpStatus.CREATED).send(user);
 });
 
@@ -39,14 +39,27 @@ const deleteUser = catchAsync(async (req, res) => {
 });
 
 const getUserDetials = catchAsync(async (req, res) => {
-  const user = await userService.getUserByName(req?.query?.username);
-  const cardList = await cardService.getCard(req?.query?.username);
-  const postList = await postService.getAllPostsByUsername(req?.query?.username);
+  let purchasedProducts = []
+  let loginUserData = ''
+  if (req.query.token) {
+    const token = await tokenService.verifyToken(req.query.token, 'refresh')
+    if (token && token.user) {
+      loginUserData = await userService.getUserById(token.user)
+      if (loginUserData && loginUserData.email) {
+        purchasedProducts = await paymentservice.getUserPaymentProductIds(loginUserData.email)
+      }
+    }
+  }
+  const user = await userService.getUserByName(req.query.username);
+  const cardList = await cardService.getCard(req.query.username);
+  const postList = await postService.getAllPostsByUsername(req.query.username, purchasedProducts);
   const result = {
     user,
     cardList,
-    images: postList?.images,
-    videos: postList?.videos
+    images: postList.images,
+    videos: postList.videos,
+    currentProductIds: purchasedProducts,
+    loginUser: loginUserData
   }
   res.send(result);
 });
@@ -55,8 +68,8 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
 
   // if (req.body.isFileUpdate === "true") {
   const isVideo = req.file.mimetype === 'video/mp4';
-  const username = req.user?.name;
-  const userId = req.user?._id;
+  const username = req.user.name;
+  const userId = req.user._id;
   if (isVideo) {
     return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
   }

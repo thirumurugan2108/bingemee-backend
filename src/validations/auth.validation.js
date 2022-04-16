@@ -10,6 +10,20 @@ const register = {
   }),
 };
 
+const verifyOtp = {
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    otp: Joi.string().required(),
+  }),
+}
+
+const userRegister = {
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    name: Joi.string().required(),
+    mobile: Joi.string().required()
+  }),
+}
 const login = {
   body: Joi.object().keys({
     name: Joi.string().required(),
@@ -50,6 +64,12 @@ const verifyEmail = {
   }),
 };
 
+const validateEmail = {
+  body: Joi.object().keys({
+    email: Joi.string().required(),
+  }),
+};
+
 module.exports = {
   register,
   login,
@@ -58,4 +78,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  userRegister,
+  verifyOtp,
+  validateEmail
 };

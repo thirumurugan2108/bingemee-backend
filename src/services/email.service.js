@@ -1,15 +1,15 @@
 const nodemailer = require('nodemailer');
 const config = require('../config/config');
 const logger = require('../config/logger');
-
+console.log(config.email.smtp)
 const transport = nodemailer.createTransport(config.email.smtp);
 /* istanbul ignore next */
-if (config.env !== 'test') {
-  transport
-    .verify()
-    .then(() => logger.info('Connected to email server'))
-    .catch(() => logger.warn('Unable to connect to email server. Make sure you have configured the SMTP options in .env'));
-}
+// if (config.env !== 'test') {
+//   transport
+//     .verify()
+//     .then(() => logger.info('Connected to email server'))
+//     .catch(() => logger.warn('Unable to connect to email server. Make sure you have configured the SMTP options in .env'));
+// }
 
 /**
  * Send an email
@@ -18,8 +18,8 @@ if (config.env !== 'test') {
  * @param {string} text
  * @returns {Promise}
  */
-const sendEmail = async (to, subject, text) => {
-  const msg = { from: config.email.from, to, subject, text };
+const sendEmail = async (to, subject, text, html = '') => {
+  const msg = { from: config.email.from, to, subject, text, html };
   await transport.sendMail(msg);
 };
 
@@ -38,6 +38,17 @@ To reset your password, click on this link: ${resetPasswordUrl}
 If you did not request any password resets, then ignore this email.`;
   await sendEmail(to, subject, text);
 };
+
+const sendOTP = async (to, name) => {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  const subject  = 'Here\'s the authorization code you asked for'
+  const text = `Dear ${name},
+   To verify your email, please use the below OTP with in 10 mins.
+   ${otp}
+   `;
+  await sendEmail(to, subject, text);
+  return otp
+}
 
 /**
  * Send verification email
@@ -60,4 +71,5 @@ module.exports = {
   sendEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,
+  sendOTP
 };
