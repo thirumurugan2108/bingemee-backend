@@ -21,7 +21,8 @@ const userRegister = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     name: Joi.string().required(),
-    mobile: Joi.string().required()
+    mobile: Joi.string().required(),
+    influencer: Joi.string(),
   }),
 }
 const login = {

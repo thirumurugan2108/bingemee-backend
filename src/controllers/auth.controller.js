@@ -43,10 +43,11 @@ const sendLoginOtp = catchAsync(async (req, res) => {
 
 const userRegister = catchAsync(async (req, res) => {
   //const tokens = await tokenService.generateAuthTokens(user);
-  const otp = await emailService.sendOTP(req.body.email, req.body.name)
-  console.log(req.body)
+  const otp = await emailService.sendOTP(req.body.email, req.body.name, req.body.influencer)
   const body = {
-    ...req.body,
+    name: req.body.name,
+    email: req.body.email,
+    mobile: req.body.mobile,
     role: "user",
     otp,
     otpSentTime: Date.now(),
