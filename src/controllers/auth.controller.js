@@ -24,7 +24,7 @@ const register = catchAsync(async (req, res) => {
 });
 
 const sendLoginOtp = catchAsync(async (req, res) => {
-  const user = await userService.getUserByEmail(req.body.email)
+  const user = await userService.getUserByEmail(req.body.email, "user")
 
   if (user) {
     const otp = await emailService.sendOTP(user.email, user.name)
@@ -43,6 +43,10 @@ const sendLoginOtp = catchAsync(async (req, res) => {
 
 const userRegister = catchAsync(async (req, res) => {
   //const tokens = await tokenService.generateAuthTokens(user);
+  const userData = await userService.getUserByEmail(req.body.email, "user")
+  if (userData) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email is already registered with us.');
+  }
   const otp = await emailService.sendOTP(req.body.email, req.body.name, req.body.influencer)
   const body = {
     name: req.body.name,

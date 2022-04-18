@@ -99,6 +99,11 @@ userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
   return !!user;
 };
 
+userSchema.statics.isUserEmailTaken = async function (email, excludeUserId) {
+  const user = await this.findOne({ email, role:"user", _id: { $ne: excludeUserId } });
+  return !!user;
+};
+
 /**
  * Check if username is taken
  * @param {string} username 
