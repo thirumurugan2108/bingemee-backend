@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const config = require('../config/config');
 const logger = require('../config/logger');
-console.log(config.email.smtp)
+const baseURL = process.env.NODE_ENV == "development" ? "http://localhost:3000/" : "https://bingemeee.com/"
 const transport = nodemailer.createTransport(config.email.smtp);
 /* istanbul ignore next */
 // if (config.env !== 'test') {
@@ -45,12 +45,12 @@ const sendOTP = async (to, name, influencer = '') => {
   const text = `Dear ${name},
    To verify your email, please use the below OTP with in 10 mins.
    ${otp}
-   or use below link to http://localhost:3000/influencer/${influencer}?validateEmail=true&email=${to} enter the otp
+   or use below link to ${baseURL}influencer/${influencer}?validateEmail=true&email=${to} enter the otp
    `;
   const html = `Dear ${name},
   To verify your email, please use the below OTP with in 10 mins.
   <b>${otp}</b> 
-  or <a href="http://localhost:3000/influencer/${influencer}?validateEmail=true&email=${to}">click here to enter the OTP</a>
+  or <a href="${baseURL}/influencer/${influencer}?validateEmail=true&email=${to}">click here to enter the OTP</a>
   ` 
   await sendEmail(to, subject, text, html);
   return otp

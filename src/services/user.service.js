@@ -20,8 +20,7 @@ const createInfluencer = async (userBody) => {
 const createUser = async (userBody) => {
   userBody.fullName = userBody.name
   userBody.password = 't12456567'
-  if (await User.isEmailTaken(userBody.email)) {
-    console.log("asdasd")
+  if (await User.isUserEmailTaken(userBody.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   // if (await User.isUserNameTaken(userBody.name)) {
@@ -68,8 +67,8 @@ const getUserById = async (id) => {
  * @param {string} email
  * @returns {Promise<User>}
  */
-const getUserByEmail = async (email) => {
-  return User.findOne({ email });
+const getUserByEmail = async (email, role= "influencer") => {
+  return User.findOne({ email, role });
 };
 
 /**
@@ -127,6 +126,7 @@ const deleteUserById = async (userId) => {
 
 
 module.exports = {
+  createInfluencer,
   createUser,
   queryUsers,
   getUserById,

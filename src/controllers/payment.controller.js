@@ -8,16 +8,15 @@ const { userService, postService, cardService, paymentservice } = require('../se
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
 const { createpaymentDetail } = require('../services/payment.service');
-
+const RazorpayKeyId = process.env.RAZORPAY_KEY_ID
+const RazorPaySecret = process.env.RAZORPAY_SECRET
 const createOrders = catchAsync(async (req, res) => {
-    const { username, id, isCard } = req?.query;
-
-    
+    const { username, id, isCard } = req?.query;    
     let result = await getproductDetails(isCard === 'true', id);
     try {
         const instance = new Razorpay({
-            key_id: 'rzp_live_kSqk8k2TEX0otB',
-            key_secret: 'UuIHrNoL8RoB0F0w27Wpwc4F',
+            key_id: RazorpayKeyId,
+            key_secret: RazorPaySecret,
         });
 
         const options = {
@@ -27,7 +26,6 @@ const createOrders = catchAsync(async (req, res) => {
         };
 
         const order = await instance.orders.create(options);
-
         if (!order) return res.status(500).send("Some error occured");
         res.json({ ...order, price: result.price * 100 });
     } catch (error) {
@@ -47,20 +45,25 @@ const paymentVerification = catchAsync(async (req, res) => {
             productDetails,
             isCard
         } = req.body;
+        var instance = new Razorpay({ key_id: RazorpayKeyId, key_secret:RazorPaySecret })
 
+        const paymentStatus = await instance.payments.fetch(razorpayPaymentId)
         // Creating our own digest
         // The format should be like this:
         // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
 
-        const shasum = crypto.createHmac("sha256", "UuIHrNoL8RoB0F0w27Wpwc4F");
+        // const shasum = crypto.createHmac("sha256", "G7FIwPIJmngzneGErUjdDW0L");
 
-        shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
+        // shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
 
-        const digest = shasum.digest("hex");
-
+        // const digest = shasum.digest("hex");
+        // console.log(digest)
+        // console.log(razorpaySignature)
         // comaparing our digest with the actual signature
-        if (digest !== razorpaySignature)
-            return res.status(400).json({ msg: "Transaction not legit!" });
+        //if (digest !== razorpaySignature)
+        if (paymentStatus.status != "authorized") {
+           return res.status(400).json({ msg: "Transaction not legit!" });
+        }
 
         // THE PAYMENT IS LEGIT & VERIFIED
         // YOU CAN SAVE THE DETAILS IN YOUR DATABASE IF YOU WANT
@@ -101,7 +104,6 @@ const paymentVerification = catchAsync(async (req, res) => {
             });
         }
     } catch (error) {
-        
         res.status(500).send(error);
     }
 });
