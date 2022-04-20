@@ -61,7 +61,7 @@ const paymentVerification = catchAsync(async (req, res) => {
         // console.log(razorpaySignature)
         // comaparing our digest with the actual signature
         //if (digest !== razorpaySignature)
-        if (paymentStatus.status != "authorized") {
+        if (paymentStatus.status != "authorized" && paymentStatus.status != "captured") {
            return res.status(400).json({ msg: "Transaction not legit!" });
         }
 
