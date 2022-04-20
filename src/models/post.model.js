@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const { toJSON, paginate } = require('./plugins');
-
+mongoose.set('useFindAndModify', false);
 const postSchema = mongoose.Schema(
   {
     username: {
