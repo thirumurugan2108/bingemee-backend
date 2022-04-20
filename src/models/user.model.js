@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique:true
+      unique:false
     },
     fullName: {
       type: String,
@@ -20,7 +20,7 @@ const userSchema = mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: false,
       trim: true,
       lowercase: true,
       validate(value) {

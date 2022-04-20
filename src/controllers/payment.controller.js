@@ -8,6 +8,7 @@ const { userService, postService, cardService, paymentservice } = require('../se
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
 const { createpaymentDetail } = require('../services/payment.service');
+console.log(process.env.RAZORPAY_KEY_ID)
 const RazorpayKeyId = process.env.RAZORPAY_KEY_ID
 const RazorPaySecret = process.env.RAZORPAY_SECRET
 const createOrders = catchAsync(async (req, res) => {
@@ -24,7 +25,7 @@ const createOrders = catchAsync(async (req, res) => {
             currency: "INR",
             // receipt: "7411012",
         };
-
+        console.log(options)
         const order = await instance.orders.create(options);
         if (!order) return res.status(500).send("Some error occured");
         res.json({ ...order, price: result.price * 100 });
@@ -34,6 +35,7 @@ const createOrders = catchAsync(async (req, res) => {
 });
 
 const paymentVerification = catchAsync(async (req, res) => {
+    console.log("paymentVerification")
     try {
         // getting the details back from our font-end
         const {
@@ -46,8 +48,9 @@ const paymentVerification = catchAsync(async (req, res) => {
             isCard
         } = req.body;
         var instance = new Razorpay({ key_id: RazorpayKeyId, key_secret:RazorPaySecret })
-
+        console.log(razorpayPaymentId)
         const paymentStatus = await instance.payments.fetch(razorpayPaymentId)
+        console.log(paymentStatus)
         // Creating our own digest
         // The format should be like this:
         // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
