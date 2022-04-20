@@ -42,16 +42,20 @@ If you did not request any password resets, then ignore this email.`;
 const sendOTP = async (to, name, influencer = '') => {
   const otp = Math.floor(100000 + Math.random() * 900000);
   const subject  = 'Here\'s the authorization code you asked for'
-  const text = `Dear ${name},
+  let text = `Dear ${name},
    To verify your email, please use the below OTP with in 10 mins.
-   ${otp}
-   or use below link to ${baseURL}influencer/${influencer}?validateEmail=true&email=${to} enter the otp
+   ${otp}`
+   if (influencer) {
+    text += `or use below link to ${baseURL}influencer/${influencer}?validateEmail=true&email=${to} enter the otp
    `;
-  const html = `Dear ${name},
+   }
+  let html = `Dear ${name},
   To verify your email, please use the below OTP with in 10 mins.
-  <b>${otp}</b> 
-  or <a href="${baseURL}/influencer/${influencer}?validateEmail=true&email=${to}">click here to enter the OTP</a>
-  ` 
+  <b>${otp}</b>`
+  if (influencer) {
+  html += `or <a href="${baseURL}/influencer/${influencer}?validateEmail=true&email=${to}">click here to enter the OTP</a>
+  `
+  } 
   await sendEmail(to, subject, text, html);
   return otp
 }
