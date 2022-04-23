@@ -22,11 +22,15 @@ const updateCardStatus = catchAsync(async (req, res) => {
   res.send(result);
 });
 
-
+const deleteCardById = catchAsync(async (req, res) => {
+  const result = await cardService.deleteCardById(req?.body?.id);
+  res.status(200).send(result);
+});
 
 
 module.exports = {
   createCard,
   updateCardStatus,
-  getCard
+  getCard,
+  deleteCardById
 };

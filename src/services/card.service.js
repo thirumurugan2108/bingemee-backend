@@ -8,10 +8,10 @@ const { Card } = require('../models');
  * @returns {Promise<PositionAlignSetting>}
  */
 const createCard = async (cardBody, username) => {
-  const filter = { user_name: username };
-  const cardResult = await Card.findOneAndUpdate(filter, cardBody, {upsert: true});
-  return cardResult;
-  // return Card.create({...cardBody, user_name: username});
+  // const filter = { user_name: username };
+  // const cardResult = await Card.create(cardBody);
+  // return cardResult;
+  return Card.create({...cardBody, user_name: username});
 };
 
 const updateCardStatus = async (id, cardData) => {
@@ -33,9 +33,24 @@ const findCardById =  async (id)=> {
   return cardResult;
 }
 
+/**
+ * Delete user by id
+ * @param {ObjectId} cardId
+ * @returns {Promise<User>}
+ */
+ const deleteCardById = async (cardId) => {
+  const card = await findCardById(cardId);
+  if (!card) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Card not found');
+  }
+  await card.remove();
+  return card;
+};
+
 module.exports = {
   createCard,
   updateCardStatus,
   getCard,
-  findCardById
+  findCardById,
+  deleteCardById
 };
