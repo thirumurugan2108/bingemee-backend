@@ -51,12 +51,14 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
   } else {
     resultFileToUpload = req.file.buffer; // getting video content
   }
-
   let uuid = "";
   if (req.body.uuid == undefined) {
     uuid = uuidv4().toString();
   } else {
     uuid = req.body.uuid;
+  }
+  if (isVideo) {
+    uuid +=  '.mp4'
   }
 
   const photo_url = await Aws.savePhoto(
