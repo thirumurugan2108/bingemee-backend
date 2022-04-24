@@ -13,16 +13,15 @@ const contactSchema = mongoose.Schema(
       lowercase: true,
     },
     subject: {
-      type: Number,
+      type: String,
       trim: true,
     },
     message: {
-      type: Number,
+      type: String,
       trim: true,
     },
     isVerified: {
       type: Boolean,
-      required: true,
       default: false,
     }
   },

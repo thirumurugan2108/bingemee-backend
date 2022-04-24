@@ -5,6 +5,7 @@ const postRoute = require('./post.route');
 const paymentRoute = require('./payment.route');
 const docsRoute = require('./docs.route');
 const cardsRoute = require('./card.route');
+const contactRoute = require('./contact.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -29,6 +30,10 @@ const defaultRoutes = [
   {
     path: '/cards',
     route: cardsRoute ,
+  },
+  {
+    path: '/createInquiry',
+    route: contactRoute ,
   }
 ];
 
