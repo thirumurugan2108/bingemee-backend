@@ -87,6 +87,7 @@ const paymentVerification = catchAsync(async (req, res) => {
             razorpaySignature: razorpaySignature,
             influencer:productDetails.username,
             status: status,
+            paymentstatus: "success",
             isCard:isCard
         };
 
@@ -118,18 +119,19 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         const username = user?.name;
         const pendingJobs = await paymentservice.getPendingJobs(username);
         const successJobs = await paymentservice.getSuccessJobs(username);
-
+        const totalRevenue = await paymentservice.getTotalRevenue(username);
         const result = {
             username,   
             pendingJobs,
             successJobs,
-            totalRevenue: user.total,
+            totalRevenue,
             paid: user.paid,
-            balance: user.balance
+            balance: totalRevenue - user.paid
         }
         res.status(200).send(result);
     } catch (error) {
-        res.status(500).send(error);
+        console.log(error)
+       // res.status(500).send(error);
     }
 });
 

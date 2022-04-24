@@ -1,5 +1,6 @@
 const { PaymentDetails } = require('../models');
-
+const mongoose = require('mongoose');
+const totalRevenueView = mongoose.model('totalRevenue', {_id: String, totalRevenue: Number}, 'totalRevenue');
 /**
  * Create a card
  * @param {Object} cardBody
@@ -47,11 +48,21 @@ const getUserPaymentProductIds = async (email) => {
   })  
   return productIds;
 }
+const getTotalRevenue = async (email) => {
+  let totalRevenue = 0
+  const PaymentDetailResults = await totalRevenueView.find({_id:email})
+  if (PaymentDetailResults) {
+    totalRevenue = PaymentDetailResults[0].totalRevenue
+  }
+
+  return totalRevenue
+}
 
 module.exports = {
   createpaymentDetail,
   getPendingJobs,
   getSuccessJobs,
   updatePaymentStatus,
-  getUserPaymentProductIds
+  getUserPaymentProductIds,
+  getTotalRevenue
 };

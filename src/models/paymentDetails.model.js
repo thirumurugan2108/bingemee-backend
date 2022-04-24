@@ -45,6 +45,11 @@ const paymentDetailSchema = mongoose.Schema(
             required: true,
             default: 'pending',
         },
+        paymentstatus: {
+            type: String,
+            required: true,
+            default: 'success',
+        },
         influencer: {
             type: String,
             required: true,
