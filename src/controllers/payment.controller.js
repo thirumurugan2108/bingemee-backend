@@ -87,7 +87,7 @@ const paymentVerification = catchAsync(async (req, res) => {
             razorpaySignature: razorpaySignature,
             influencer:productDetails.username,
             status: status,
-            paymentstatus: "success",
+            paymentStatus: "success",
             isCard:isCard
         };
 
