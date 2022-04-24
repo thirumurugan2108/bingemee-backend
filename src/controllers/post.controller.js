@@ -8,7 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 const Aws = require('../utils/Aws');
 const { compress } = require('../utils/jimp');
 const { upsertPost } = require('../services/post.service');
-
+const ffmpeg = require('fluent-ffmpeg');
+const fs = require('fs')
 // const createPostByUserId = catchAsync(async (req, res) => {
 //   const username = req.user?.name;
 //   const post = await postService.createPost({ ...req?.body, username: username });
@@ -60,12 +61,31 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
   if (isVideo) {
     uuid +=  '.mp4'
   }
-
   const photo_url = await Aws.savePhoto(
     uuid,
     resultFileToUpload,
     isVideo
   );
+  const fileSplit = photo_url.Location.split('videos/')
+  const urlPath = `${fileSplit[0]}videos/`
+  const thumbnailPath = '/tmp/thumbnail/';
+  const thumbnail = `${uuid.replace('.mp4', '')}-thumbnail.png`
+  const command = ffmpeg(`${urlPath}${uuid}`)
+  .screenshots({
+    timestamps: ['1'],
+    filename: thumbnail,
+    folder: thumbnailPath,
+    size: '320x240'
+  })
+  .on('end', async () => {
+    const data = fs.readFileSync(`${thumbnailPath}${thumbnail}`);
+    await Aws.savePhoto(
+      thumbnail,
+      data,
+      false,
+      true
+    );
+  })
   const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
   const post = {
     title: req.body.title,

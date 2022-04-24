@@ -2,19 +2,21 @@ const fs = require("fs");
 const AWS = require("aws-sdk");
 
 class Aws {
-  static async savePhoto(filename, fileContent, isVideo) {
+  static async savePhoto(filename, fileContent, isVideo = false, thumbnail = false) {
     const s3 = new AWS.S3({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     });
-
+    let Key = isVideo ? `videos/${filename}` : `images/${filename}`
+    if (thumbnail) {
+      Key = `thumbnail/${filename}`
+    }
     const par = {
       Bucket: 'bingmee1',
-      Key: isVideo ? `videos/${filename}` : `images/${filename}`,
+      Key,
       ACL: "public-read",
       Body: fileContent,
     };
-
     return await s3.upload(par).promise();
   }
 
