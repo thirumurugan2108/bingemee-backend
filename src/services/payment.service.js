@@ -58,11 +58,32 @@ const getTotalRevenue = async (email) => {
   return totalRevenue
 }
 
+const getInfulencerCardPayments = async (influencer) => {
+  const PaymentDetailResult = await PaymentDetails.find({influencer, isCard: true}).sort( { "createdAt": -1 } )
+  const cardPayments = []
+  PaymentDetailResult.map((res, index) => {
+    const d = new Date(res.createdAt);
+    cardPayments.push({
+      sl: index + 1,
+      createdAt: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
+      title: res.productDetails.title, 
+      price: res.productDetails.price, 
+      status: res.status, 
+      comments: res.buyerDetails.comments,
+      buyerName: res.buyerDetails.buyerName, 
+      buyerPhoneNumber: res.buyerDetails.buyerPhoneNumber, 
+      buyerEmailId: res.buyerDetails.buyerEmailId,
+      id: res._id
+    })
+  })
+  return cardPayments
+}
 module.exports = {
   createpaymentDetail,
   getPendingJobs,
   getSuccessJobs,
   updatePaymentStatus,
   getUserPaymentProductIds,
-  getTotalRevenue
+  getTotalRevenue,
+  getInfulencerCardPayments
 };

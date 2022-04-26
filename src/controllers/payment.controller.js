@@ -117,13 +117,13 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         // getting the details back from our font-end
         const user = req.user;
         const username = user?.name;
-        const pendingJobs = await paymentservice.getPendingJobs(username);
-        const successJobs = await paymentservice.getSuccessJobs(username);
+        //const pendingJobs = await paymentservice.getPendingJobs(username);
+        //const successJobs = await paymentservice.getSuccessJobs(username);
+        const cardPayments = await paymentservice.getInfulencerCardPayments(username);
         const totalRevenue = await paymentservice.getTotalRevenue(username);
         const result = {
             username,   
-            pendingJobs,
-            successJobs,
+            cardPayments,
             totalRevenue,
             paid: user.paid,
             balance: totalRevenue - user.paid
