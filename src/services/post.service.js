@@ -121,11 +121,24 @@ const getAllPostsByUsername = async (username, purchasedProducts = []) => {
   };
   return result;
 };
+
+const deletePost = async (uuid) => {
+  const postResult = await Post.deleteOne({uuid})
+  return postResult
+}
+
+const getPostByUUID = async (uuid) => {
+  console.log(uuid)
+  const postResult = await Post.find({uuid})
+  return postResult
+}
 module.exports = {
   createPost,
   getPostsById,
   findPostsByUsername,
   getAllPostsByUsername,
   updatePostById,
-  upsertPost
+  upsertPost,
+  getPostByUUID,
+  deletePost,
 };

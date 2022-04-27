@@ -22,6 +22,7 @@ router
   router
   .route('/updatePost')
   .post(auth('updatePost'), postController.updatePostWithoutImage)
+router.delete('/deletePost/:uuid', postController.deletePost)
 
 //   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
 //   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);

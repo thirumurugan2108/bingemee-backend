@@ -1,6 +1,5 @@
 const fs = require("fs");
 const AWS = require("aws-sdk");
-
 class Aws {
   static async savePhoto(filename, fileContent, isVideo = false, thumbnail = false) {
     const s3 = new AWS.S3({
@@ -35,7 +34,43 @@ class Aws {
 
     return await s3.upload(par).promise();
   }
-
+  
+  static async deleteObject(file, isVideo) {
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
+    console.log(process.env.AWS_ACCESS_KEY_ID)
+    console.log(process.env.AWS_SECRET_ACCESS_KEY)
+    const Objects  = []
+    if (!isVideo) {
+      Objects.push({Key : `images/${file}`})
+    }
+    else {
+      Objects.push({Key : `videos/${file}`})
+      Objects.push({Key : `videos/${file}.mp4`})
+      Objects.push({Key : `thumbnail/${file}-thumbnail.png`})
+    }
+    
+    try {
+      const params = {
+        Bucket: "bingmee1", 
+        Delete: {
+         Objects, 
+         Quiet: false
+        }
+       };
+      const data = await s3.deleteObjects(params, function(err, data) {
+        if (err) console.log(err, err.stack); 
+        else    return data;        
+      });
+      if (data) {
+        return "success";
+      }
+    } catch (err) {
+      console.log("Error", err);
+    }
+  }
 
 
   // static async pushNotification(payload) {

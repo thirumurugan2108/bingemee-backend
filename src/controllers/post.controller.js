@@ -122,10 +122,30 @@ const updatePostWithoutImage = catchAsync(async (req, res) => {
   res.send(post);
 });
 
+const deletePost = catchAsync(async (req, res) => {
+  try {
+    const postData = await postService.getPostByUUID(req.params.uuid)
+    const delRes = await Aws.deleteObject(req.params.uuid, postData[0].isVideo)
+    if (delRes === "success") {
+      const post = await postService.deletePost(req.params.uuid);
+      res.send("success")
+    }
+    else {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Unable to delete the post');
+    }
+  }
+  catch(e) {
+    console.log(e)
+  }
+  //const post = 
+  //res.send('success')
+});
+
 module.exports = {
   getAllPosts,
   updatePostWithoutImage,
-  uploadPostWithImage
+  uploadPostWithImage,
+  deletePost,
 };
 
 

@@ -15,8 +15,10 @@ const validate = (schema) => (req, res, next) => {
     //return next(new ApiError(httpStatus.BAD_REQUEST, errorMessage));
     res.json({status: "error", message: errorMessage})
   }
-  Object.assign(req, value);
-  return next();
+  else {
+    Object.assign(req, value);
+    return next();
+  }
 };
 
 module.exports = validate;
