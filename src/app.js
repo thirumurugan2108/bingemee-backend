@@ -45,12 +45,10 @@ app.use(compression());
 app.use(cors({
   origin: ['https://bingemeee.com', 'https://www.bingemeee.com', 'https://api.bingemeee.com'],
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-  preflightContinue: true,
 }));
 app.options('*', cors({
   origin: ['https://bingemeee.com', 'https://www.bingemeee.com', 'https://api.bingemeee.com'],
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
-  preflightContinue: true,
 }));
 
 app.use(function (req, res, next) {
