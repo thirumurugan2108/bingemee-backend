@@ -43,7 +43,9 @@ app.use(compression());
 
 // enable cors
 app.use(cors());
-app.options('*', cors());
+app.options('*', cors({
+  origin: 'https://bingemeee.com'
+}));
 
 // jwt authentication
 app.use(passport.initialize());
