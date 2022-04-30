@@ -45,7 +45,7 @@ const paymentDetailSchema = mongoose.Schema(
             required: true,
             default: 'pending',
         },
-        paymentstatus: {
+        paymentStatus: {
             type: String,
             required: true,
             default: 'success',
