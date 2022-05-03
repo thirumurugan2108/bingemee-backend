@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const { Post } = require('../models');
 const ApiError = require('../utils/ApiError');
-
+const paymentService = require('./payment.service')
 /**
  * Create a post
  * @param {Object} postBody
@@ -28,20 +28,44 @@ const createPost = async (postBody) => {
  */
 const findPostsByUsername = async (name) => {
   const posts = await Post.find({ username: name });
-
+  
   let images = [];
   let videos = [];
-  posts.forEach(element => {
-    if (!element.isVideo) {
-      images.push(element);
-    } else {
-      videos.push(element);
+  if (posts) {
+  await Promise.all(posts.map(async element => {
+    const dataObj = {
+      price : element.price,
+      isPaid: element.isPaid,
+      _id: element._id,
+      uuid: element.uuid,
+      createdAt:element.createdAt,
+      extensionName: element.extensionName,
+      fileUrl:element.fileUrl,
+      isVideo: element.isVideo,
+      title:element.title,
+      updatedAt: element.updatedAt,
+      username: element.username,
+      transaction: false
     }
-  });
+    const postsTransactions = await paymentService.getInfulencerPostTransaction(element._id)
+    if (postsTransactions) {
+      const {qty, totalRevenue} = postsTransactions
+      dataObj.transaction = {totalSales: qty, totalRevenue}
+    }
+
+    if (!dataObj.isVideo) {
+      images.push(dataObj);
+    } else {
+      videos.push(dataObj);
+    }
+  }
+  ))
+  }
   const result = {
     images: images,
     videos: videos
   };
+ // console.log(result)
   return result;
 };
 

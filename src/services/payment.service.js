@@ -1,6 +1,7 @@
 const { PaymentDetails } = require('../models');
 const mongoose = require('mongoose');
 const totalRevenueView = mongoose.model('totalRevenue', {_id: String, totalRevenue: Number}, 'totalRevenue');
+const postRevenueView = mongoose.model('postRevenue', {_id: String, postRevenue: Number}, 'postRevenue');
 /**
  * Create a card
  * @param {Object} cardBody
@@ -58,6 +59,17 @@ const getTotalRevenue = async (email) => {
   return totalRevenue
 }
 
+const getInfulencerPostTransaction = async(postId) => {
+  const revenueDetails = await postRevenueView.find({_id: postId})
+  if (revenueDetails.length>0) {
+    const {qty, totalRevenue} = JSON.parse(JSON.stringify(revenueDetails[0]))
+    return {qty, totalRevenue}
+  }
+  else {
+    return false
+  }
+}
+
 const getInfulencerCardPayments = async (influencer) => {
   const PaymentDetailResult = await PaymentDetails.find({influencer, isCard: true}).sort( { "createdAt": -1 } )
   const cardPayments = []
@@ -85,5 +97,6 @@ module.exports = {
   updatePaymentStatus,
   getUserPaymentProductIds,
   getTotalRevenue,
-  getInfulencerCardPayments
+  getInfulencerCardPayments,
+  getInfulencerPostTransaction
 };

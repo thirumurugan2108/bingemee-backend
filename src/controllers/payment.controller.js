@@ -8,7 +8,6 @@ const { userService, postService, cardService, paymentservice } = require('../se
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
 const { createpaymentDetail } = require('../services/payment.service');
-console.log(process.env.RAZORPAY_KEY_ID)
 const RazorpayKeyId = process.env.RAZORPAY_KEY_ID
 const RazorPaySecret = process.env.RAZORPAY_SECRET
 const createOrders = catchAsync(async (req, res) => {
@@ -25,7 +24,6 @@ const createOrders = catchAsync(async (req, res) => {
             currency: "INR",
             // receipt: "7411012",
         };
-        console.log(options)
         const order = await instance.orders.create(options);
         if (!order) return res.status(500).send("Some error occured");
         res.json({ ...order, price: result.price * 100 });
@@ -50,7 +48,6 @@ const paymentVerification = catchAsync(async (req, res) => {
         var instance = new Razorpay({ key_id: RazorpayKeyId, key_secret:RazorPaySecret })
         console.log(razorpayPaymentId)
         const paymentStatus = await instance.payments.fetch(razorpayPaymentId)
-        console.log(paymentStatus)
         // Creating our own digest
         // The format should be like this:
         // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
@@ -117,13 +114,15 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         // getting the details back from our font-end
         const user = req.user;
         const username = user?.name;
-        //const pendingJobs = await paymentservice.getPendingJobs(username);
-        //const successJobs = await paymentservice.getSuccessJobs(username);
-        const cardPayments = await paymentservice.getInfulencerCardPayments(username);
+        let pendingJobs = await paymentservice.getPendingJobs(username);
+        const successJobs = await paymentservice.getSuccessJobs(username);
+        //const cardPayments = await paymentservice.getInfulencerCardPayments(username);
         const totalRevenue = await paymentservice.getTotalRevenue(username);
+        
         const result = {
             username,   
-            cardPayments,
+            pendingJobs,
+            successJobs,
             totalRevenue,
             paid: user.paid,
             balance: totalRevenue - user.paid
