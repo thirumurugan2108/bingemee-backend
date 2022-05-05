@@ -144,7 +144,7 @@ userSchema.statics.validateOtp = async function (email, otp, type) {
   if (user && type =='signup') {
     const result = await User.updateOne({ email} , { otp: '', otpSentTime: '', isEmailVerified: true});
   }
-  else {
+  if (user && type == 'login') {
     const result = await User.updateOne({email} , { otp: '', otpSentTime: '' });
   }
   return user
