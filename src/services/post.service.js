@@ -33,6 +33,8 @@ const findPostsByUsername = async (name) => {
   let videos = [];
   if (posts) {
   await Promise.all(posts.map(async element => {
+    const albumURlSplit = element.fileUrl.split(`${element.uuid}/`)
+
     const dataObj = {
       price : element.price,
       isPaid: element.isPaid,
@@ -45,7 +47,9 @@ const findPostsByUsername = async (name) => {
       title:element.title,
       updatedAt: element.updatedAt,
       username: element.username,
-      transaction: false
+      transaction: false,
+      albumFileNames: element.albumFileNames ? element.albumFileNames : '',
+      albumUrl: `${albumURlSplit[0]}${element.uuid}/`
     }
     const postsTransactions = await paymentService.getInfulencerPostTransaction(element._id)
     if (postsTransactions) {
@@ -129,9 +133,12 @@ const getAllPostsByUsername = async (username, purchasedProducts = []) => {
       price: element.price,
       isPaid: element.isPaid,
       id: element.id,
+      albumFileNames: element.albumFileNames ? element.albumFileNames : ''
     }
     if(element.isPaid === 'No' || purchasedProducts.indexOf(element.id) != -1) {
       filteredElement.fileUrl = element.fileUrl;
+      const albumURlSplit = element.fileUrl.split(`${element.uuid}/`)
+      filteredElement.albumUrl = `${albumURlSplit[0]}${element.uuid}/`
     }
     if (!element.isVideo) {
       images.push(filteredElement);

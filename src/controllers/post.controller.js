@@ -37,45 +37,17 @@ const getAllPosts = catchAsync(async (req, res) => {
 //   uploadPostWithImage(req, res);
 //   await updatePost(req, res);
 // });
-
-const uploadPostWithImage = catchAsync(async (req, res) => {
-
-  // if (req.body.isFileUpdate === "true") {
-    // if(req.file.mimetype.includes('svg')){
-    //   ret
-    // }
-  const isVideo = req.file.mimetype === 'video/mp4'
-  let resultFileToUpload = {};
-  if (!isVideo) {
-    resultFileToUpload = req.file.buffer;
-    // resultFileToUpload = await compress(req.file.buffer);
-  } else {
-    resultFileToUpload = req.file.buffer; // getting video content
-  }
-  let uuid = "";
-  if (req.body.uuid == undefined) {
-    uuid = uuidv4().toString();
-  } else {
-    uuid = req.body.uuid;
-  }
-  if (isVideo) {
-    uuid +=  '.mp4'
-  }
-  const photo_url = await Aws.savePhoto(
-    uuid,
-    resultFileToUpload,
-    isVideo
-  );
+const generateThumbnail = (uuid, photo_url) => {
   const fileSplit = photo_url.Location.split('videos/')
   const urlPath = `${fileSplit[0]}videos/`
   const thumbnailPath = '/tmp/thumbnail/';
   const thumbnail = `${uuid.replace('.mp4', '')}-thumbnail.png`
   const command = ffmpeg(`${urlPath}${uuid}`)
   .screenshots({
-    timestamps: ['1'],
-    filename: thumbnail,
-    folder: thumbnailPath,
-    size: '320x240'
+      timestamps: ['1'],
+      filename: thumbnail,
+      folder: thumbnailPath,
+      size: '320x240'
   })
   .on('end', async () => {
     const data = fs.readFileSync(`${thumbnailPath}${thumbnail}`);
@@ -86,7 +58,62 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
       true
     );
   })
+}
+const uploadPostWithImage = catchAsync(async (req, res) => {
+  let uuid = "";
+  let albumFileNames= ''
+  let photo_url = ''
+  let isVideo = false
   const generateUniqueId = `${new Date().getTime().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
+  if (req.body.uuid == undefined) {
+    uuid = uuidv4().toString();
+  } else {
+    uuid = req.body.uuid;
+  }
+  if (req.files.length == 1) {
+    isVideo = req.files[0].mimetype === 'video/mp4'
+    let resultFileToUpload = {};
+    if (!isVideo) {
+      resultFileToUpload = req.files[0].buffer;
+      // resultFileToUpload = await compress(req.file.buffer);
+    } else {
+      resultFileToUpload = req.files[0].buffer; // getting video content
+    }
+    
+    if (isVideo) {
+      uuid +=  '.mp4'
+    }
+    photo_url = await Aws.savePhoto(
+      uuid,
+      resultFileToUpload,
+      isVideo
+    );
+    if (isVideo) {
+      generateThumbnail(uuid, photo_url)    
+    }
+  }
+  else {
+    await Promise.all(req.files.map(async (fl, index) => {
+      const extSplit = fl.originalname.split('.')
+      const resultFileToUpload = fl.buffer;
+      isVideo = fl.mimetype === 'video/mp4'
+      albumFileNames += `${index}.${extSplit[1]},`
+      s3Url = await Aws.savePhoto(
+        `${uuid}/${index}.${extSplit[1]}`,
+        resultFileToUpload,
+        isVideo
+      );
+      if (!photo_url) {
+        photo_url = s3Url
+        if (isVideo) {
+          generateThumbnail(uuid, photo_url)
+        }
+      }
+    }))
+
+    albumFileNames = albumFileNames.slice(0, -1)
+  }
+
   const post = {
     title: req.body.title,
     price: req.body.price,
@@ -95,9 +122,12 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
     fileUrl: photo_url.Location + '?clearCache=' + generateUniqueId,
     uuid: uuid,
     username: req.user?.name,
-    isVideo: isVideo
-  };
+    isVideo: isVideo,
+    albumFileNames
+    }
+  
   await upsertPost(uuid, post);
+  
   res.send({
     message: "success"
   });
