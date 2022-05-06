@@ -40,6 +40,11 @@ const postSchema = mongoose.Schema(
     extensionName: {
       type:String,
       required: true,
+    },
+    albumFileNames: {
+      type:String,
+      required: false,
+      trim: true,
     }
   },
   {

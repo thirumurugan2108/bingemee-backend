@@ -18,12 +18,11 @@ router
 
 router
   .route('/uploadImages')
-  .post(auth('uploadImages'), upload.single('file'), postController.uploadPostWithImage)
+  .post(auth('uploadImages'), upload.array('files'), postController.uploadPostWithImage)
   router
   .route('/updatePost')
   .post(auth('updatePost'), postController.updatePostWithoutImage)
 router.delete('/deletePost/:uuid', postController.deletePost)
-
 //   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
 //   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 
