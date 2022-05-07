@@ -37,17 +37,20 @@ const getAllPosts = catchAsync(async (req, res) => {
 //   uploadPostWithImage(req, res);
 //   await updatePost(req, res);
 // });
-const generateThumbnail = (uuid, photo_url) => {
+const generateThumbnail = (uuid, photo_url, albumFileName= '') => {
   const fileSplit = photo_url.Location.split('videos/')
   const urlPath = `${fileSplit[0]}videos/`
   const thumbnailPath = '/tmp/thumbnail/';
   const thumbnail = `${uuid.replace('.mp4', '')}-thumbnail.png`
-  const command = ffmpeg(`${urlPath}${uuid}`)
+  let vidoeUrl = `${urlPath}${uuid}`
+  if (albumFileName) {
+    vidoeUrl += `/${albumFileName}`
+  }
+  const command = ffmpeg(vidoeUrl)
   .screenshots({
-      timestamps: ['1'],
+      timestamps: ['00:01'],
       filename: thumbnail,
       folder: thumbnailPath,
-      size: '320x240'
   })
   .on('end', async () => {
     const data = fs.readFileSync(`${thumbnailPath}${thumbnail}`);
@@ -106,7 +109,7 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
       if (!photo_url) {
         photo_url = s3Url
         if (isVideo) {
-          generateThumbnail(uuid, photo_url)
+          generateThumbnail(uuid, photo_url, `${index}.${extSplit[1]}`)
         }
       }
     }))
