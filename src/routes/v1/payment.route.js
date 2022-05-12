@@ -8,9 +8,15 @@ router
   .route('/')
   .get(paymentController.createOrders)
   .post(paymentController.paymentSuccess)
-
-  router
-    .route('/paymentDetails')
-    .get(auth('getPaymentDetails'),paymentController.getPaymentDetails)
-    .post(auth('updatepaymentStatus'),paymentController.updatePaymentStatus);
+router
+  .route('/paymentDetails')
+  .get(auth('getPaymentDetails'),paymentController.getPaymentDetails)
+  .post(auth('updatepaymentStatus'),paymentController.updatePaymentStatus);
+router
+  .route('/receipts/:id')
+  .get(paymentController.getReceipts)
+router
+  .route('/getInstaPaymentUrl')
+  .post(paymentController.getInstaPaymentUrl)
+router.route('/storeInstaPaymentDetail').post(paymentController.storeInstaPaymentDetail)
 module.exports = router;

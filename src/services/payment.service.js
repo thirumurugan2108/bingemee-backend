@@ -31,6 +31,15 @@ const updatePaymentStatus = async (id, status) => {
   return result;
 };
 
+const updateInstaPaymentStatus = async (payment_request_id, payment_id) => {
+  const PaymentDetailResult = await PaymentDetails.find({'razorpayOrderId':payment_request_id});
+  // const filter = { user_name: username };
+  // var _id = Mongoose.Types.ObjectId.fromString(id);
+  const result = await PaymentDetails.findByIdAndUpdate({_id: PaymentDetailResult[0]._id}, {razorpayPaymentId: payment_id, paymentStatus: "success", });
+  // const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
+  return result;
+};
+
 const getSuccessJobs = async (username) => {
   const filter = {
     influencer:username,
@@ -43,7 +52,7 @@ const getSuccessJobs = async (username) => {
 
 const getUserPaymentProductIds = async (email) => {
   const productIds = []
-  const PaymentDetailResult = await PaymentDetails.find({'buyerDetails.buyerEmailId':email, status: "success"});
+  const PaymentDetailResult = await PaymentDetails.find({'buyerDetails.buyerEmailId':email, paymentStatus: "success"});
   PaymentDetailResult.map(pay => {
     productIds.push(pay.productId)
   })  
@@ -98,5 +107,6 @@ module.exports = {
   getUserPaymentProductIds,
   getTotalRevenue,
   getInfulencerCardPayments,
-  getInfulencerPostTransaction
+  getInfulencerPostTransaction,
+  updateInstaPaymentStatus,
 };
