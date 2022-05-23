@@ -124,6 +124,42 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+const StoreSubscription = async (email, duration, influencer) => {
+  
+  const user = await getUserByEmail(email, "user")
+  let subscription = []
+  const now  = Date.now()
+  if (user.subscriptions) {
+    subscription = user.subscriptions
+    subscription.push({duration, influencer, now})
+  }
+  else {
+    subscription.push({duration, influencer, now})
+  }
+  user.subscriptions = subscription
+  user.save()
+}
+
+const getSubscriptionExpiryDuration = (loginUserData, influencer) => {
+  const loggedInUserSubscription = loginUserData.subscriptions.filter(sub => sub.influencer == influencer)
+  if (loggedInUserSubscription.length > 0) {
+    const subscribedOn = loggedInUserSubscription[0].now
+    
+    const date = new Date(subscribedOn);
+    let month = date.getMonth()+loggedInUserSubscription[0].duration
+    if (month < 10) {
+      month = '0'+month
+    }
+    const expiryDate = new Date( date.getFullYear(), month, date.getDate(), date.getHours(), date.getMinutes());
+    
+    const diffTime = Math.abs(expiryDate - new Date());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) {
+      return diffDays
+    }
+  }
+  return 0
+}
 
 module.exports = {
   createInfluencer,
@@ -136,4 +172,6 @@ module.exports = {
   validateOtp,
   getUserByEmail,
   loginWithOTP,
+  StoreSubscription,
+  getSubscriptionExpiryDuration
 };

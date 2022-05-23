@@ -122,7 +122,7 @@ const upsertPost = async (uuid, post) => {
 //   return user;
 // };
 
-const getAllPostsByUsername = async (username, purchasedProducts = []) => {
+const getAllPostsByUsername = async (username, purchasedProducts = [], expiryDuration) => {
   const filter = { username: username };
   const postResult = await Post.find(filter).sort({ 'updatedAt' : -1});;
   let images = [];
@@ -135,10 +135,11 @@ const getAllPostsByUsername = async (username, purchasedProducts = []) => {
       id: element.id,
       albumFileNames: element.albumFileNames ? element.albumFileNames : ''
     }
-    if(element.isPaid === 'No' || purchasedProducts.indexOf(element.id) != -1) {
+    if(element.isPaid === 'No' || purchasedProducts.indexOf(element.id) != -1 || expiryDuration) {
       filteredElement.fileUrl = element.fileUrl;
       const albumURlSplit = element.fileUrl.split(`${element.uuid}/`)
       filteredElement.albumUrl = `${albumURlSplit[0]}${element.uuid}/`
+      filteredElement.isPaid = 'No'
     }
     if (!element.isVideo) {
       images.push(filteredElement);
@@ -146,6 +147,7 @@ const getAllPostsByUsername = async (username, purchasedProducts = []) => {
       videos.push(filteredElement);
     }
   });
+
   const result = {
     images: images,
     videos: videos
