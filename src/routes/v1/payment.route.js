@@ -16,7 +16,7 @@ router
   .route('/receipts/:id')
   .get(paymentController.getReceipts)
 router
-  .route('/getInstaPaymentUrl')
-  .post(paymentController.getInstaPaymentUrl)
-router.route('/storeInstaPaymentDetail').post(paymentController.storeInstaPaymentDetail)
+  .route('/getPaymentUrl')
+  .post(paymentController.getPaymentUrl)
+router.route('/storePaymentDetail').post(paymentController.storePaymentDetail)
 module.exports = router;

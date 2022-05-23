@@ -31,11 +31,12 @@ const updatePaymentStatus = async (id, status) => {
   return result;
 };
 
-const updateInstaPaymentStatus = async (payment_request_id, payment_id) => {
-  const PaymentDetailResult = await PaymentDetails.find({'razorpayOrderId':payment_request_id});
+const updatePaymentProcessingStatus = async (payment_request_id, payment_id, status) => {
+  const PaymentDetailResult = await PaymentDetails.findById(payment_request_id);
+  //const PaymentDetailResult = await PaymentDetails.find({ $or:[{'razorpayOrderId':payment_request_id, _id: new mongoose.Types.ObjectId(payment_request_id)}]});
   // const filter = { user_name: username };
   // var _id = Mongoose.Types.ObjectId.fromString(id);
-  const result = await PaymentDetails.findByIdAndUpdate({_id: PaymentDetailResult[0]._id}, {razorpayPaymentId: payment_id, paymentStatus: "success", });
+  const result = await PaymentDetails.findByIdAndUpdate({_id: PaymentDetailResult._id}, {razorpayPaymentId: payment_id, paymentStatus: status, });
   // const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
   return result;
 };
@@ -108,5 +109,5 @@ module.exports = {
   getTotalRevenue,
   getInfulencerCardPayments,
   getInfulencerPostTransaction,
-  updateInstaPaymentStatus,
+  updatePaymentProcessingStatus,
 };

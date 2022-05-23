@@ -59,6 +59,23 @@ const paymentDetailSchema = mongoose.Schema(
             required:true,
             default: false
 
+        },
+        isSubscription : {
+            type: Boolean,
+            required:true,
+            default: false
+        },
+        subscriptionDuration : {
+            type: Number,
+            trim: true
+        },
+        orderNote: {
+            type: String,
+            trim: true
+        },
+        paymentGateway: {
+            type: String,
+            trim: true
         }
     },
     {

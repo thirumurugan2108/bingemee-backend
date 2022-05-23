@@ -5,3 +5,4 @@ module.exports.Card = require('./card.model');
 module.exports.PaymentDetails = require('./paymentDetails.model');
 module.exports.Contact = require('./contact.model');
 module.exports.Receipts = require('./receipts.model')
+module.exports.Subscription = require('./subscription.model')
