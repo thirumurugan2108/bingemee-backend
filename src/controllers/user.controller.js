@@ -64,7 +64,7 @@ const getUserDetials = catchAsync(async (req, res) => {
     currentProductIds: purchasedProducts,
     loginUser: loginUserData,
     expiryDuration,
-    //subscriptions
+    subscriptions
   }
   res.send(result);
 });
