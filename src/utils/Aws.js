@@ -34,6 +34,22 @@ class Aws {
 
     return await s3.upload(par).promise();
   }
+  static async saveCoverPhoto(filename, fileContent) {
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
+
+    const par = {
+      Bucket: 'bingmee1',
+      Key: `cover/${filename}`,
+      ACL: "public-read",
+      Body: fileContent,
+    };
+
+    return await s3.upload(par).promise();
+  }
+  
   
   static async deleteObject(file, isVideo) {
     const s3 = new AWS.S3({

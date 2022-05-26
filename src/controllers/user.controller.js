@@ -3,7 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { userService, cardService, postService, tokenService, paymentservice, subscriptionService } = require('../services');
-const { saveProfilePhoto } = require('../utils/Aws');
+const { saveProfilePhoto, saveCoverPhoto } = require('../utils/Aws');
 const { compress } = require('../utils/jimp');
 const { v4: uuidv4 } = require('uuid');
 
@@ -104,6 +104,39 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
 }
 );
 
+const uploadCoverPhoto = catchAsync(async (req, res) => {
+
+  // if (req.body.isFileUpdate === "true") {
+  const isVideo = req.file.mimetype === 'video/mp4';
+  const username = req.user.name;
+  const userId = req.user._id;
+  if (isVideo) {
+    return res.status(400).json({ msg: "invalid file format. video can't be uploaded.please use image" });
+  }
+
+  let resultFileToUpload = req.file.buffer;
+  // let resultFileToUpload = await compress(req.file.buffer);
+
+  let uuid = "";
+  if (req.body.uuid == undefined) {
+    uuid = uuidv4().toString();
+  } else {
+    uuid = req.body.uuid;
+  }
+
+  const photo_url = await saveCoverPhoto(
+    username,
+    resultFileToUpload
+  );
+
+  await userService.updateUserById(req.user, { coverUrl: photo_url.Location });
+  // await upsertPost(uuid, post);
+  res.send({
+    message: "success"
+  });
+}
+);
+
 module.exports = {
   createUser,
   getUsers,
@@ -111,5 +144,6 @@ module.exports = {
   updateUser,
   deleteUser,
   getUserDetials,
-  uploadProfilePhoto
+  uploadProfilePhoto,
+  uploadCoverPhoto
 };
