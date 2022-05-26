@@ -66,6 +66,10 @@ const userSchema = mongoose.Schema(
       type: String,
       default:'https://bingmee1.s3.ap-south-1.amazonaws.com/profile/defaultprof.jpg'
     },
+    coverUrl: {
+      type: String,
+      default:''
+    },
     total: {
       type: Number,
       default:0,
