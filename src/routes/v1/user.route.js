@@ -25,7 +25,9 @@ router
   router
   .route('/uploadphoto')
   .post(auth('uploadphoto'), upload.single('file'), userController.uploadProfilePhoto)
-
+  router
+  .route('/uploadCoverphoto')
+  .post(auth('uploadCoverphoto'), upload.single('file'), userController.uploadCoverPhoto)
 
 router
   .route('/:userId')

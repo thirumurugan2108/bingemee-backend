@@ -98,7 +98,13 @@ const updateUserById = async (user, updateBody) => {
   // if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
   //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   // }
-  user.photoUrl = updateBody.photoUrl;
+  if (updateBody.photoUrl) {
+    user.photoUrl = updateBody.photoUrl;
+  }
+  else {
+    user.coverUrl = updateBody.coverUrl;
+  }
+  console.log(user)
   // Object.assign(user, updateBody);
   // const filter = { user_name: username };
   // const cardResult = await Card.findOneAndUpdate(filter, cardData, {upsert: true});
