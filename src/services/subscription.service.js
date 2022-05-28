@@ -43,6 +43,10 @@ const disableSubscriptionStatus = async({id}) => {
   const subscriptionData = Subscription.findByIdAndUpdate(id, {status: false});
   return subscriptionData;
 }
+
+const getTotalSubscribers = async({id}) => {
+  
+}
 module.exports = {
   createSubscription,
   getSubscriptionData,

@@ -76,6 +76,10 @@ const paymentDetailSchema = mongoose.Schema(
         paymentGateway: {
             type: String,
             trim: true
+        },
+        testMode: {
+            type: Boolean,
+            default: false
         }
     },
     {

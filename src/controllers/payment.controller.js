@@ -203,31 +203,48 @@ const verifyInstaPayment = catchAsync(async (req) => {
 })
 
 const verifyCashfreePayment =  async (req) => {
+    try {
+    let API_VERSION = process.env.CASHFREE_API_VERSION
+    let CLIENT_ID = process.env.CASHFREE_CLIENT_ID
+    let CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET
+    let API_URL = process.env.CASHFREE_API_URL
+    let testMode = false
+    if(req.body.test_mode && req.body.test_mode == process.env.TEST_MODE_SECRET) {
+        API_VERSION = process.env.TEST_CASHFREE_API_VERSION
+        CLIENT_ID = process.env.TEST_CASHFREE_CLIENT_ID
+        CLIENT_SECRET = process.env.TEST_CASHFREE_CLIENT_SECRET
+        API_URL = process.env.TEST_CASHFREE_API_URL
+        testMode = true
+    }
     const {order_id} = req.body
     const headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "x-api-version": process.env.CASHFREE_API_VERSION,
-        "x-client-id": process.env.CASHFREE_CLIENT_ID,
-        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET,
+        "x-api-version": API_VERSION,
+        "x-client-id": CLIENT_ID,
+        "x-client-secret": CLIENT_SECRET,
     }
     
-    const resp = await axios.get(`https://${process.env.CASHFREE_API_URL}/pg/orders/${order_id}/payments`, {headers})
-    
+    const resp = await axios.get(`https://${API_URL}/pg/orders/${order_id}/payments`, {headers})
     if (resp.status == 200) {
         if (resp.data[0].payment_status == "SUCCESS") {
-            const paymentDetails = await paymentservice.updatePaymentProcessingStatus(order_id, resp.data.payment_id, "success")
+            const paymentDetails = await paymentservice.updatePaymentProcessingStatus(order_id, resp.data.payment_id, "success", testMode)
             if (paymentDetails.isSubscription) {
                 await userService.StoreSubscription(paymentDetails.buyerDetails.buyerEmailId, paymentDetails.subscriptionDuration, paymentDetails.influencer)
+                await userService.updateSubscribers(paymentDetails.influencer, paymentDetails.buyerDetails.id)
             }
             return paymentDetails
         }
         else {
-            await paymentservice.updatePaymentProcessingStatus(order_id, resp.data.payment_id, "failure")
+            await paymentservice.updatePaymentProcessingStatus(order_id, resp.data.payment_id, "failure", testMode)
             return false
         }
     }
     return false
+}
+catch (e) {
+    console.log(e)
+}
 }
 
 const storePaymentDetail = catchAsync(async (req, res) => {
@@ -292,12 +309,26 @@ const InstMojoPaymentUrl = catchAsync(async (req, product) => {
 })
 const cashFreePaymentUrl = async (paymentDetails, amount) => {
     try {
+    //EXCLUDED LIVE PAYMENT.
+    const excludedEmails = process.env.PAYMENT_EXCLUDE_EMAILS.split(',')
+    let API_VERSION = process.env.CASHFREE_API_VERSION
+    let CLIENT_ID = process.env.CASHFREE_CLIENT_ID
+    let CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET
+    let API_URL = process.env.CASHFREE_API_URL
+    let testMode = ''
+    if (excludedEmails.indexOf(paymentDetails.buyerDetails.buyerEmailId) != -1) {
+        API_VERSION = process.env.TEST_CASHFREE_API_VERSION
+        CLIENT_ID = process.env.TEST_CASHFREE_CLIENT_ID
+        CLIENT_SECRET = process.env.TEST_CASHFREE_CLIENT_SECRET
+        API_URL = process.env.TEST_CASHFREE_API_URL
+        testMode=`&test_mode=${process.env.TEST_MODE_SECRET}`
+    }
     const headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "x-api-version": process.env.CASHFREE_API_VERSION,
-        "x-client-id": process.env.CASHFREE_CLIENT_ID,
-        "x-client-secret": process.env.CASHFREE_CLIENT_SECRET,
+        "x-api-version": API_VERSION,
+        "x-client-id": CLIENT_ID,
+        "x-client-secret": CLIENT_SECRET,
     }
     
     let order_tags = {}
@@ -316,7 +347,6 @@ const cashFreePaymentUrl = async (paymentDetails, amount) => {
             imageVideo: true
          }
      }
-    //console.log(paymentDetails)
     const payload = {
         order_id: paymentDetails._id,
         order_amount: amount,
@@ -327,23 +357,22 @@ const cashFreePaymentUrl = async (paymentDetails, amount) => {
             customer_phone: paymentDetails.buyerDetails.buyerPhoneNumber,
         },
         order_meta: {
-            return_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/${paymentDetails.influencer}?payment_type=cashfree&order_id={order_id}&order_token={order_token}`,
+            return_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/${paymentDetails.influencer}?payment_type=cashfree&order_id={order_id}&order_token={order_token}${testMode}`,
             //todo.
             notify_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/cashfreeNotify`,
             order_note: paymentDetails.order_note,
             order_tags,
         }
-
     }
     
-    const resp = await axios.post(`https://${process.env.CASHFREE_API_URL}/pg/orders`, payload, {headers})
+    const resp = await axios.post(`https://${API_URL}/pg/orders`, payload, {headers})
     if (resp.status == 200) {
         return resp.data
     }
     return false
 }
 catch (e) {
-    //console.log(e)
+    console.log(e)
     return false
 }
 }
@@ -429,7 +458,7 @@ const getPaymentUrl = catchAsync(async (req, res) => {
         }
     }
     catch (e) {
-        //console.log(e)
+        console.log(e)
         res.send({status: "error", message: "Unable to process payment"}) 
     }
 })

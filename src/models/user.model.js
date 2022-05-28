@@ -84,6 +84,9 @@ const userSchema = mongoose.Schema(
     },
     subscriptions: {
       type: Array
+    },
+    subscribers: {
+      type: Array
     }
   },
   {

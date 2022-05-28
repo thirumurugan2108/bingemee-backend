@@ -167,6 +167,22 @@ const getSubscriptionExpiryDuration = (loginUserData, influencer) => {
   return 0
 }
 
+const getAllUserHasSubscription = async () => {
+  return User.find({"role": "user", "subscriptions": { $gt: {$size: 1 }},  })
+}
+
+const updateSubscribers = async (influencer, usrId) => {
+  const user = await User.findOne({name: influencer, role: "influencer"})
+  console.log(user)
+  if (user.subscribers && user.subscribers.indexOf(usrId)) {
+    user.subscribers.push(usrId)
+  }
+  else {
+    user.subscribers=[usrId]
+  }
+  user.save()
+}
+
 module.exports = {
   createInfluencer,
   createUser,
@@ -179,5 +195,7 @@ module.exports = {
   getUserByEmail,
   loginWithOTP,
   StoreSubscription,
-  getSubscriptionExpiryDuration
+  getSubscriptionExpiryDuration,
+  getAllUserHasSubscription,
+  updateSubscribers
 };
