@@ -6,7 +6,7 @@ const { userService, postService, cardService, paymentservice, emailService, rec
 const base64 = require('base-64')
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
-const { createpaymentDetail } = require('../services/payment.service');
+const { createpaymentDetail, getPaymentDetailsById } = require('../services/payment.service');
 const RazorpayKeyId = process.env.RAZORPAY_KEY_ID
 const RazorPaySecret = process.env.RAZORPAY_SECRET
 const axios = require('axios')
@@ -108,7 +108,17 @@ const paymentVerification = catchAsync(async (req, res) => {
         res.status(500).send(error);
     }
 });
-
+const Last7Days = () => {
+    const result = [];
+    for (let i=0; i<7; i++) {
+      let d = new Date();
+      d.setDate(d.getDate() - i);
+      const curDate = d.getDate()
+      const month = d.getMonth()+1
+      result.push(`${curDate}/${month}`)
+    }
+    return(result.reverse());
+}
 const getPaymentDetails = catchAsync(async (req, res) => {
     try {
         // getting the details back from our font-end
@@ -118,18 +128,50 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         const successJobs = await paymentservice.getSuccessJobs(username);
         //const cardPayments = await paymentservice.getInfulencerCardPayments(username);
         const totalRevenue = await paymentservice.getTotalRevenue(username);
+        const last7Days = Last7Days()
+        const d = new Date()
+        const toDate = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()+1}`
+        d.setDate(d.getDate() - 5);
+        const fromDate = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
+        const transactions = await paymentservice.getLastDurationTransactions(username, fromDate, toDate)
+        const labels = []
+        const imageData = [0, 0, 0, 0, 0, 0, 0]
+        const videoData = [0, 0, 0, 0, 0, 0, 0]
+        const cardsData = [0, 0, 0, 0, 0, 0, 0]
+        const subscriptionData = [0, 0, 0, 0, 0, 0, 0]
+        last7Days.map(days => {
+            const [day, month] = days.split('/')
+            labels.push(day)
+        })
         
+        // transactions to graph data.
+        transactions.map(trans => {
+            const index = last7Days.indexOf(trans.date)
+            if (trans.isCard) {cardsData[index] = trans.price}
+            else if (trans.isImage) {imageData[index] = trans.price}
+            else if (trans.isVideo) {videoData[index] = trans.price}
+            else if (trans.isSubscription) {subscriptionData[index] = trans.price}
+        })
         const result = {
             username,   
             pendingJobs,
             successJobs,
             totalRevenue,
             paid: user.paid,
-            balance: totalRevenue - user.paid
+            balance: totalRevenue - user.paid,
+            transactions,
+            graph: {
+                labels,
+                imageData,
+                videoData,
+                cardsData,
+                subscriptionData
+            }
         }
+        console.log(result)
         res.status(200).send(result);
     } catch (error) {
-        //console.log(error)
+        console.log(error)
        // res.status(500).send(error);
     }
 });
@@ -258,7 +300,7 @@ const storePaymentDetail = catchAsync(async (req, res) => {
             paymentDetails = await verifyCashfreePayment(req)
         }
         if (paymentDetails) {
-            res.send({status: "payment success", isCard: paymentDetails.isCard, isSubscription: paymentDetails.isSubscription })
+            res.send({status: "payment success", isCard: paymentDetails.isCard, isSubscription: paymentDetails.isSubscription, influencer: paymentDetails.influencer })
         }
         else {
             res.send({status: "payment failure"})
@@ -307,7 +349,7 @@ const InstMojoPaymentUrl = catchAsync(async (req, product) => {
     }
     return false
 })
-const cashFreePaymentUrl = async (paymentDetails, amount) => {
+const cashFreePaymentUrl = async (paymentDetails) => {
     try {
     //EXCLUDED LIVE PAYMENT.
     const excludedEmails = process.env.PAYMENT_EXCLUDE_EMAILS.split(',')
@@ -323,6 +365,7 @@ const cashFreePaymentUrl = async (paymentDetails, amount) => {
         API_URL = process.env.TEST_CASHFREE_API_URL
         testMode=`&test_mode=${process.env.TEST_MODE_SECRET}`
     }
+
     const headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
@@ -349,7 +392,7 @@ const cashFreePaymentUrl = async (paymentDetails, amount) => {
      }
     const payload = {
         order_id: paymentDetails._id,
-        order_amount: amount,
+        order_amount: paymentDetails.amount,
         order_currency: "INR",
         customer_details: {
             customer_id: paymentDetails.buyerDetails.id,
@@ -357,17 +400,16 @@ const cashFreePaymentUrl = async (paymentDetails, amount) => {
             customer_phone: paymentDetails.buyerDetails.buyerPhoneNumber,
         },
         order_meta: {
-            return_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/${paymentDetails.influencer}?payment_type=cashfree&order_id={order_id}&order_token={order_token}${testMode}`,
+            return_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/paymentVerification?payment_type=cashfree&order_id={order_id}&order_token={order_token}${testMode}`,
             //todo.
             notify_url: `${process.env.PAYMENT_RETURN_URL_DOMAIN}/cashfreeNotify`,
-            order_note: paymentDetails.order_note,
             order_tags,
         }
     }
-    
+    console.log(payload)
     const resp = await axios.post(`https://${API_URL}/pg/orders`, payload, {headers})
     if (resp.status == 200) {
-        return resp.data
+         return resp.data
     }
     return false
 }
@@ -376,6 +418,87 @@ catch (e) {
     return false
 }
 }
+const createOrder = catchAsync(async (req, res) => {
+    const isSubscription = req.body.subscription != ''
+        const product = await getproductDetails(req.body.isCard, req.body.productId, isSubscription, req.body.influencer)
+        const userDetails = await userService.getUserByEmail(req.body.email, 'user')
+        let amount = 0
+        let orderNote = ''
+        let influencer = ''
+        let subscriptionDuration = 0
+        if (req.body.isCard) {
+          influencer = product.user_name 
+          amount = product.price
+          orderNote = `${product.title} (${req.body.productId})`
+        }
+        else if (isSubscription) {
+            const currentSubscription = product.subscription.filter(sub => sub.name == req.body.subscription).shift()
+            amount = currentSubscription.price
+            influencer = product.influencer
+            orderNote = `${currentSubscription.name} Subscription for ${product.influencer}`
+            subscriptionDuration = currentSubscription.duration
+        }
+        else {
+          influencer = product.username 
+          amount = product.price
+          orderNote = `Image / Video (${req.body.productId})`
+        }
+
+        const buyerDetails = {
+            buyerName: userDetails.name,
+            buyerPhoneNumber:userDetails.mobile, 
+            buyerEmailId: userDetails.email,
+            id: userDetails._id,
+        }
+        let status = 'success';
+        if (req.body.isCard) {
+            buyerDetails.comments = req.body.comments
+            status = 'pending'
+        }
+
+        const paymentDetail = {
+            buyerPhoneNumber: userDetails.mobile,
+            buyerDetails,
+            productId:product.id,
+            productDetails: product,
+            razorpayOrderId: '',
+            influencer,
+            status: status,
+            paymentStatus: "initiated",
+            isCard:req.body.isCard,
+            isSubscription,
+            subscriptionDuration,
+            orderNote,
+            amount,
+            paymentGateway: req.body.paymentGateway
+        };
+        let order_id = ''
+        let paymentLink = ''
+        const payDetails = await createpaymentDetail(paymentDetail)
+        if (payDetails && payDetails._id) {
+            res.send({url:`${process.env.BARADIEL_PAYMENT_PAGE_URL}?id=${payDetails._id}`})
+        }
+        else {
+            res.send({status: "error", message: "Unable to process payment"}) 
+        }
+})
+
+const getUrl = catchAsync(async (req, res) => {
+    if (req.body.id) {
+        const paymentDetail = await getPaymentDetailsById(req.body.id)
+        const {order_id, payment_link} = await cashFreePaymentUrl(paymentDetail,paymentDetail.amount )
+                
+        if (payment_link) {
+           res.send({url: payment_link, paymentDetail, order_id})
+        }
+        else {
+            res.send({status: "error", message: "Unable to process payment"}) 
+        }
+    }
+    else {
+        res.send({status: "error", message: "Unable to process payment"}) 
+    }
+})
 
 const getPaymentUrl = catchAsync(async (req, res) => {
     try {
@@ -463,6 +586,7 @@ const getPaymentUrl = catchAsync(async (req, res) => {
     }
 })
 
+
 module.exports = {
     createOrders,
     getPaymentDetails,
@@ -471,6 +595,8 @@ module.exports = {
     getReceipts,
     getPaymentUrl,
     storePaymentDetail,
+    createOrder,
+    getUrl,
 };
 async function getproductDetails(isCard, id, isSubscription = false, influencer= '') {
     let result = {};

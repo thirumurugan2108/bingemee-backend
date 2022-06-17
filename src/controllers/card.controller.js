@@ -15,9 +15,26 @@ const getCard = catchAsync(async (req, res) => {
   const result = await cardService.getCard(username);
   res.status(200).send(result);
 });
-
+const isRestrictedWordsPresent = async (strings) => {
+  let isWordPresent = false
+  const task = restrictedWords.map((restricted) => {
+    if (strings.indexOf(restricted) !== -1) {
+      isWordPresent = true
+    }
+  })
+  await Promise.all(task)
+  return isWordPresent
+}
 const updateCardStatus = catchAsync(async (req, res) => {
   // const username = req.user?.name;
+  const isRestrictedWordPresent = await isRestrictedWordsPresent(req.body.title)
+  if (isRestrictedWordPresent) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Restricted words present in your title');
+  }
+  const isRestrictedWordDesc = await isRestrictedWordsPresent(req.body.description)
+  if (isRestrictedWordDesc) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Restricted words present in your description');
+  }
   const result = await cardService.updateCardStatus(req?.body?.id, req?.body);
   res.send(result);
 });

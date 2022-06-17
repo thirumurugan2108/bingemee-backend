@@ -137,6 +137,18 @@ const uploadCoverPhoto = catchAsync(async (req, res) => {
 }
 );
 
+const getInfluencerHomeData = catchAsync(async (req, res) => {
+  try {
+    const user = req.user;
+    const username = user?.name;
+    console.log(user)
+  }
+  catch (e) {
+
+  }
+
+})
+
 module.exports = {
   createUser,
   getUsers,
@@ -145,5 +157,6 @@ module.exports = {
   deleteUser,
   getUserDetials,
   uploadProfilePhoto,
-  uploadCoverPhoto
+  uploadCoverPhoto,
+  getInfluencerHomeData
 };

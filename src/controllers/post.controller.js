@@ -10,6 +10,7 @@ const { compress } = require('../utils/jimp');
 const { upsertPost } = require('../services/post.service');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs')
+const restrictedWords = JSON.parse(process.env.RESTRICTED_WORDS)
 // const createPostByUserId = catchAsync(async (req, res) => {
 //   const username = req.user?.name;
 //   const post = await postService.createPost({ ...req?.body, username: username });
@@ -62,7 +63,22 @@ const generateThumbnail = (uuid, photo_url, albumFileName= '') => {
     );
   })
 }
+const isRestrictedWordsPresent = async (strings) => {
+  let isWordPresent = false
+  const task = restrictedWords.map((restricted) => {
+    if (strings.indexOf(restricted) !== -1) {
+      isWordPresent = true
+    }
+  })
+  await Promise.all(task)
+  return isWordPresent
+}
 const uploadPostWithImage = catchAsync(async (req, res) => {
+  // Check for Restricted words
+  const isRestrictedWordPresent = await isRestrictedWordsPresent(req.body.title)
+  if (isRestrictedWordPresent) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Restricted words present in your title');
+  }
   let uuid = "";
   let albumFileNames= ''
   let photo_url = ''
@@ -151,6 +167,10 @@ const uploadPostWithImage = catchAsync(async (req, res) => {
 }
 );
 const updatePostWithoutImage = catchAsync(async (req, res) => {
+  const isRestrictedWordPresent = await isRestrictedWordsPresent(req.body.title)
+  if (isRestrictedWordPresent) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Restricted words present in your title');
+  }
   const post = await postService.updatePostById(req.body.id, req.body);
   res.send(post);
 });

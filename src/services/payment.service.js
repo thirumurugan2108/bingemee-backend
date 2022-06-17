@@ -80,11 +80,37 @@ const getInfulencerPostTransaction = async(postId) => {
   }
 }
 
+const getLastDurationTransactions = async (influencer, fromDate, toDate) => {
+  const transactions = []
+
+  const PaymentDetailResult = await PaymentDetails.find({influencer ,createdAt: {$gte:new Date(fromDate).toISOString(), $lt:new Date(toDate).toISOString()},  testMode: false, paymentStatus: "success"}).sort( { "updatedAt": 1 } )
+  PaymentDetailResult.map((res, index) => {
+    const d = new Date(res.createdAt);
+    let price = res.productDetails.price
+    if (res.isSubscription == true) {
+      const subscription = res.productDetails.subscription.filter(sb => sb.duration == res.subscriptionDuration).shift()
+      price = subscription.price
+    }
+    transactions.push({
+      date: `${d.getDate()}/${d.getMonth()+1}`, 
+      userName: res.buyerDetails.buyerName, 
+      isCard: res.isCard,
+      isSubscription: res.isSubscription,
+      isVideo: res.productDetails.isVideo,
+      isImage: res.isSubscription == false && res.isCard == false && res.productDetails.isVideo == false ? true : false,
+      price,
+      comments: res.buyerDetails.comments ? res.buyerDetails.comments : '',
+      status: res.status
+    })
+  })
+  console.log(transactions)
+  return transactions
+}
+
 const getInfulencerCardPayments = async (influencer) => {
   const PaymentDetailResult = await PaymentDetails.find({influencer, isCard: true}).sort( { "createdAt": -1 } )
   const cardPayments = []
   PaymentDetailResult.map((res, index) => {
-    const d = new Date(res.createdAt);
     cardPayments.push({
       sl: index + 1,
       createdAt: `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`,
@@ -100,6 +126,9 @@ const getInfulencerCardPayments = async (influencer) => {
   })
   return cardPayments
 }
+const getPaymentDetailsById = async (id) => {
+  return await PaymentDetails.findById(id)
+}
 module.exports = {
   createpaymentDetail,
   getPendingJobs,
@@ -110,4 +139,6 @@ module.exports = {
   getInfulencerCardPayments,
   getInfulencerPostTransaction,
   updatePaymentProcessingStatus,
+  getLastDurationTransactions,
+  getPaymentDetailsById
 };

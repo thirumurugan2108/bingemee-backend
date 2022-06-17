@@ -10,13 +10,19 @@ router
   .post(paymentController.paymentSuccess)
 router
   .route('/paymentDetails')
-  .get(auth('getPaymentDetails'),paymentController.getPaymentDetails)
-  .post(auth('updatepaymentStatus'),paymentController.updatePaymentStatus);
+  .get(auth('getPaymentDetails'), paymentController.getPaymentDetails)
+  .post(auth('updatepaymentStatus'), paymentController.updatePaymentStatus);
 router
   .route('/receipts/:id')
   .get(paymentController.getReceipts)
 router
+  .route('/createOrder')
+  .post(paymentController.createOrder)
+router
   .route('/getPaymentUrl')
   .post(paymentController.getPaymentUrl)
+router
+  .route('/getUrl')
+  .post(paymentController.getUrl)
 router.route('/storePaymentDetail').post(paymentController.storePaymentDetail)
 module.exports = router;

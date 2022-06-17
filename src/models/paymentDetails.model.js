@@ -80,6 +80,10 @@ const paymentDetailSchema = mongoose.Schema(
         testMode: {
             type: Boolean,
             default: false
+        },
+        amount: {
+            type: String,
+            trim: true
         }
     },
     {
