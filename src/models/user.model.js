@@ -144,13 +144,13 @@ userSchema.pre('save', async function (next) {
 });
 
 userSchema.statics.updateOtp = async function (email, otp) {
-  const user = await this.findOne({ email });
+  const user = await this.findOne({ email, role: "user" });
   const result = await User.updateOne({ email} , { otp, otpSentTime: Date.now() });
   return user
 }
 
 userSchema.statics.validateOtp = async function (email, otp, type) {
-  const user = await this.findOne({ email, otp });
+  const user = await this.findOne({ email, otp, role: "user" });
   if (user && type =='signup') {
     const result = await User.updateOne({ email} , { otp: '', otpSentTime: '', isEmailVerified: true});
   }

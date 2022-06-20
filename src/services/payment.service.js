@@ -79,12 +79,10 @@ const getInfulencerPostTransaction = async(postId) => {
     return false
   }
 }
-
-const getLastDurationTransactions = async (influencer, fromDate, toDate) => {
+const paymentDetailsToTransaction = async (paymentDetails) => {
   const transactions = []
-
-  const PaymentDetailResult = await PaymentDetails.find({influencer ,createdAt: {$gte:new Date(fromDate).toISOString(), $lt:new Date(toDate).toISOString()},  testMode: false, paymentStatus: "success"}).sort( { "updatedAt": 1 } )
-  PaymentDetailResult.map((res, index) => {
+  console.log(paymentDetails)
+  const task = paymentDetails.map((res, index) => {
     const d = new Date(res.createdAt);
     let price = res.productDetails.price
     if (res.isSubscription == true) {
@@ -103,8 +101,21 @@ const getLastDurationTransactions = async (influencer, fromDate, toDate) => {
       status: res.status
     })
   })
-  console.log(transactions)
+  await Promise.all(task)
   return transactions
+}
+const getLastDurationTransactions = async (influencer, fromDate, toDate) => {
+  
+  const fetchOptions = {
+    influencer,
+    createdAt: {$gte:new Date(fromDate).toISOString(), $lt:new Date(toDate).toISOString()},
+    paymentStatus: "success"
+  }
+  if (process.env.SHOW_TEST_MODE_TRANSACTIONS === false) {
+    fetchOptions.testMode = false
+  }
+  const PaymentDetailResult = await PaymentDetails.find({...fetchOptions}).sort( { "updatedAt": 1 } )
+  return await paymentDetailsToTransaction(PaymentDetailResult)
 }
 
 const getInfulencerCardPayments = async (influencer) => {
@@ -126,6 +137,19 @@ const getInfulencerCardPayments = async (influencer) => {
   })
   return cardPayments
 }
+const getAllTransactions = async ({influencer, isCard , isSubscription, isImageVideo}) => {
+  const fetchOptions = {
+    influencer,
+    isCard,
+    isSubscription,
+    paymentStatus: "success"
+  }
+  if (process.env.SHOW_TEST_MODE_TRANSACTIONS === false) {
+    fetchOptions.testMode = false
+  }
+  const PaymentDetailResult = await PaymentDetails.find({...fetchOptions}).sort( { "createdAt": -1 } )
+  return await paymentDetailsToTransaction(PaymentDetailResult)
+}
 const getPaymentDetailsById = async (id) => {
   return await PaymentDetails.findById(id)
 }
@@ -140,5 +164,6 @@ module.exports = {
   getInfulencerPostTransaction,
   updatePaymentProcessingStatus,
   getLastDurationTransactions,
-  getPaymentDetailsById
+  getPaymentDetailsById,
+  getAllTransactions
 };

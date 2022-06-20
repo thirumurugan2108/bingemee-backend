@@ -12,6 +12,7 @@ router
   .route('/paymentDetails')
   .get(auth('getPaymentDetails'), paymentController.getPaymentDetails)
   .post(auth('updatepaymentStatus'), paymentController.updatePaymentStatus);
+  
 router
   .route('/receipts/:id')
   .get(paymentController.getReceipts)
@@ -25,4 +26,5 @@ router
   .route('/getUrl')
   .post(paymentController.getUrl)
 router.route('/storePaymentDetail').post(paymentController.storePaymentDetail)
+router.route('/getTransactionsByUser').post(auth('getTransactionsByUser'), paymentController.getTransactionsByUser);
 module.exports = router;

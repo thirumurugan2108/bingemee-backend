@@ -585,7 +585,21 @@ const getPaymentUrl = catchAsync(async (req, res) => {
         res.send({status: "error", message: "Unable to process payment"}) 
     }
 })
-
+const getTransactionsByUser = catchAsync(async (req, res) => {
+    
+    const user = req.user;
+    const influencer = user?.name;
+    console.log(user)
+    console.log(req.body)
+    const {isCard = false, isSubscription = false, isImageVideo = false} = req.body
+    if (!influencer) {
+        res.send({status: "error", message: "Unable to fetch Transactions"}) 
+    }
+    else {
+        const transactions = await paymentservice.getAllTransactions({influencer, isCard , isSubscription, isImageVideo})
+        res.send(transactions)
+    }
+})
 
 module.exports = {
     createOrders,
@@ -597,7 +611,9 @@ module.exports = {
     storePaymentDetail,
     createOrder,
     getUrl,
+    getTransactionsByUser,
 };
+
 async function getproductDetails(isCard, id, isSubscription = false, influencer= '') {
     let result = {};
     if (isCard) {
