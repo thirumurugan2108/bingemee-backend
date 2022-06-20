@@ -487,7 +487,10 @@ const getUrl = catchAsync(async (req, res) => {
     if (req.body.id) {
         const paymentDetail = await getPaymentDetailsById(req.body.id)
         const {order_id, payment_link} = await cashFreePaymentUrl(paymentDetail,paymentDetail.amount )
-                
+        if (paymentDetail.influencer) {
+            const influencer = userService.getUserByName(paymentDetail.influencer)
+            paymentDetail.influencerName = influencer.fullName
+        }
         if (payment_link) {
            res.send({url: payment_link, paymentDetail, order_id})
         }
