@@ -121,7 +121,7 @@ const getLastDurationTransactions = async (influencer, fromDate, toDate) => {
 }
 
 const getInfulencerCardPayments = async (influencer) => {
-  const PaymentDetailResult = await PaymentDetails.find({influencer, isCard: true}).sort( { "createdAt": -1 } )
+  const PaymentDetailResult = await PaymentDetails.find({influencer, isCard: true, paymentStatus: "success"}).sort( { "createdAt": -1 } )
   const cardPayments = []
   PaymentDetailResult.map((res, index) => {
     cardPayments.push({
