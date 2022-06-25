@@ -1,5 +1,6 @@
 const { PaymentDetails } = require('../models');
 const mongoose = require('mongoose');
+const { defaultMaxListeners } = require('nodemailer/lib/xoauth2');
 const totalRevenueView = mongoose.model('totalRevenue', {_id: String, totalRevenue: Number}, 'totalRevenue');
 const postRevenueView = mongoose.model('postRevenue', {_id: String, postRevenue: Number}, 'postRevenue');
 /**
@@ -83,7 +84,6 @@ const getInfulencerPostTransaction = async(postId) => {
 }
 const paymentDetailsToTransaction = async (paymentDetails) => {
   const transactions = []
-  console.log(paymentDetails)
   const task = paymentDetails.map((res, index) => {
     const d = new Date(res.createdAt);
     let price = res.productDetails.price
@@ -92,6 +92,7 @@ const paymentDetailsToTransaction = async (paymentDetails) => {
       price = subscription.price
     }
     transactions.push({
+      id: res._id,
       date: `${d.getDate()}/${d.getMonth()+1}`, 
       userName: res.buyerDetails.buyerName, 
       isCard: res.isCard,
@@ -100,7 +101,11 @@ const paymentDetailsToTransaction = async (paymentDetails) => {
       isImage: res.isSubscription == false && res.isCard == false && res.productDetails.isVideo == false ? true : false,
       price,
       comments: res.buyerDetails.comments ? res.buyerDetails.comments : '',
-      status: res.status
+      status: res.status,
+      email: res.buyerDetails.buyerEmailId,
+      phone: res.buyerDetails.buyerPhoneNumber,
+      prodTitle: res.productDetails.title,
+      prodDesc: res.productDetails.description
     })
   })
   await Promise.all(task)
@@ -139,17 +144,36 @@ const getInfulencerCardPayments = async (influencer) => {
   })
   return cardPayments
 }
-const getAllTransactions = async ({influencer, isCard , isSubscription, isImageVideo}) => {
+const getAllTransactions = async ({influencer, type, status, page = 1, limit = 5}) => {
+  let skip = 0
+  if (page > 1) {
+    skip = page*limit
+  }
   const fetchOptions = {
     influencer,
-    isCard,
-    isSubscription,
-    paymentStatus: "success"
+    paymentStatus: "success",
   }
+  if (status) {
+    fetchOptions.status = status
+  }
+  switch (type) {
+    case 'post':
+      fetchOptions.isCard = false
+      fetchOptions.isSubscription = false
+      break;
+    case 'cards': 
+      fetchOptions.isCard = true
+      break
+    case 'subscription':
+      fetchOptions.isSubscription = true
+      break
+  }
+
   if (process.env.SHOW_TEST_MODE_TRANSACTIONS === false) {
     fetchOptions.testMode = false
   }
-  const PaymentDetailResult = await PaymentDetails.find({...fetchOptions}).sort( { "createdAt": -1 } )
+
+  const PaymentDetailResult = await PaymentDetails.find({...fetchOptions}).sort( { "createdAt": -1 } ).skip(skip).limit(limit)
   return await paymentDetailsToTransaction(PaymentDetailResult)
 }
 const getPaymentDetailsById = async (id) => {

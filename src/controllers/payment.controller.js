@@ -589,17 +589,17 @@ const getPaymentUrl = catchAsync(async (req, res) => {
     }
 })
 const getTransactionsByUser = catchAsync(async (req, res) => {
-    
     const user = req.user;
     const influencer = user?.name;
-    console.log(user)
-    console.log(req.body)
-    const {isCard = false, isSubscription = false, isImageVideo = false} = req.body
+    let {status = '', type = '', page = 1} = req.body
+    if (status == 'all')  {
+        status = ''
+    }
     if (!influencer) {
         res.send({status: "error", message: "Unable to fetch Transactions"}) 
     }
     else {
-        const transactions = await paymentservice.getAllTransactions({influencer, isCard , isSubscription, isImageVideo})
+        const transactions = await paymentservice.getAllTransactions({influencer, status, type, page })
         res.send(transactions)
     }
 })
