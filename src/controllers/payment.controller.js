@@ -2,6 +2,7 @@ const httpStatus = require('http-status')
 const pick = require('../utils/pick')
 const ApiError = require('../utils/ApiError')
 const catchAsync = require('../utils/catchAsync')
+const {displayPriceConversion} = require("../utils/common")
 const { userService, postService, cardService, paymentservice, emailService, receiptsService, subscriptionService } = require('../services')
 const base64 = require('base-64')
 const Razorpay = require("razorpay");
@@ -46,19 +47,6 @@ const paymentVerification = catchAsync(async (req, res) => {
         } = req.body;
         var instance = new Razorpay({ key_id: RazorpayKeyId, key_secret:RazorPaySecret })
         const paymentStatus = await instance.payments.fetch(razorpayPaymentId)
-        // Creating our own digest
-        // The format should be like this:
-        // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
-
-        // const shasum = crypto.createHmac("sha256", "G7FIwPIJmngzneGErUjdDW0L");
-
-        // shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
-
-        // const digest = shasum.digest("hex");
-        // console.log(digest)
-        // console.log(razorpaySignature)
-        // comaparing our digest with the actual signature
-        //if (digest !== razorpaySignature)
         if (paymentStatus.status != "authorized" && paymentStatus.status != "captured") {
            return res.status(400).json({ msg: "Transaction not legit!" });
         }
@@ -121,9 +109,10 @@ const Last7Days = () => {
 }
 const getPaymentDetails = catchAsync(async (req, res) => {
     try {
-        // getting the details back from our font-end
         const user = req.user;
-        const username = user?.name;
+        let username = user?.name;
+        // getting the details back from our font-end
+        
         let pendingJobs = await paymentservice.getPendingJobs(username);
         const successJobs = await paymentservice.getSuccessJobs(username);
         //const cardPayments = await paymentservice.getInfulencerCardPayments(username);
@@ -147,10 +136,10 @@ const getPaymentDetails = catchAsync(async (req, res) => {
         // transactions to graph data.
         transactions.map(trans => {
             const index = last7Days.indexOf(trans.date)
-            if (trans.isCard) {cardsData[index] = trans.price}
-            else if (trans.isImage) {imageData[index] = trans.price}
-            else if (trans.isVideo) {videoData[index] = trans.price}
-            else if (trans.isSubscription) {subscriptionData[index] = trans.price}
+            if (trans.isCard) {cardsData[index] += trans.price}
+            else if (trans.isImage) {imageData[index] += trans.price}
+            else if (trans.isVideo) {videoData[index] += trans.price}
+            else if (trans.isSubscription) {subscriptionData[index] += trans.price}
         })
         const result = {
             username,   
@@ -168,7 +157,6 @@ const getPaymentDetails = catchAsync(async (req, res) => {
                 subscriptionData
             }
         }
-        console.log(result)
         res.status(200).send(result);
     } catch (error) {
         console.log(error)
@@ -234,7 +222,6 @@ const verifyInstaPayment = catchAsync(async (req) => {
         })
         if (resp.data.status === true) {
             const paymentDetails = await paymentservice.updatePaymentProcessingStatus(payment_request_id, payment_id, "success")
-            //console.log(paymentDetails)
             if (paymentDetails.isSubscription) {
                 userService.StoreSubscription(paymentDetails.email, paymentDetails.subscriptionDuration, paymentDetails.influencer, )
             }
@@ -358,7 +345,7 @@ const cashFreePaymentUrl = async (paymentDetails) => {
     let CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET
     let API_URL = process.env.CASHFREE_API_URL
     let testMode = ''
-    if (excludedEmails.indexOf(paymentDetails.buyerDetails.buyerEmailId) != -1) {
+    if ((excludedEmails.indexOf(paymentDetails.buyerDetails.buyerEmailId) != -1) || process.env.PAYMENT_TEST_MODE == "true") {
         API_VERSION = process.env.TEST_CASHFREE_API_VERSION
         CLIENT_ID = process.env.TEST_CASHFREE_CLIENT_ID
         CLIENT_SECRET = process.env.TEST_CASHFREE_CLIENT_SECRET
@@ -406,7 +393,6 @@ const cashFreePaymentUrl = async (paymentDetails) => {
             order_tags,
         }
     }
-    console.log(payload)
     const resp = await axios.post(`https://${API_URL}/pg/orders`, payload, {headers})
     if (resp.status == 200) {
          return resp.data
@@ -443,7 +429,9 @@ const createOrder = catchAsync(async (req, res) => {
           amount = product.price
           orderNote = `Image / Video (${req.body.productId})`
         }
+        const influencerData = await userService.getUserByName(influencer)
 
+        amount = displayPriceConversion(influencerData.commission, amount)
         const buyerDetails = {
             buyerName: userDetails.name,
             buyerPhoneNumber:userDetails.mobile, 

@@ -28,7 +28,8 @@ router
   router
   .route('/uploadCoverphoto')
   .post(auth('uploadCoverphoto'), upload.single('file'), userController.uploadCoverPhoto)
-
+router.route('/getInfluencers')
+  .get(auth('getInfluencers'), userController.getInfluencers)
 router
   .route('/:userId')
   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)

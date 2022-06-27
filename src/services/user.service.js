@@ -62,6 +62,10 @@ const getUserById = async (id) => {
   return User.findById(id);
 };
 
+const getInfluencers = async () => { 
+  return await User.find({"role": "influencer", "isEmailVerified": true}).sort({"name": 1})
+}
+
 /**
  * Get user by email
  * @param {string} email
@@ -98,12 +102,17 @@ const updateUserById = async (user, updateBody) => {
   // if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
   //   throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   // }
+  console.log(updateBody)
   if (updateBody.photoUrl) {
     user.photoUrl = updateBody.photoUrl;
+  }
+  if (updateBody.password) {
+    user.password = updateBody.password;
   }
   else {
     user.coverUrl = updateBody.coverUrl;
   }
+  console.log("userObj")
   console.log(user)
   // Object.assign(user, updateBody);
   // const filter = { user_name: username };
@@ -170,10 +179,13 @@ const getSubscriptionExpiryDuration = (loginUserData, influencer) => {
 const getAllUserHasSubscription = async () => {
   return User.find({"role": "user", "subscriptions": { $gt: {$size: 1 }},  })
 }
-
+const changePassword = async (usr, password) => {
+  const user = await User.findOne({name: usr.name})
+  user.password = password
+  user.save()
+}
 const updateSubscribers = async (influencer, usrId) => {
   const user = await User.findOne({name: influencer, role: "influencer"})
-  console.log(user)
   if (user.subscribers && user.subscribers.indexOf(usrId)) {
     user.subscribers.push(usrId)
   }
@@ -197,5 +209,7 @@ module.exports = {
   StoreSubscription,
   getSubscriptionExpiryDuration,
   getAllUserHasSubscription,
-  updateSubscribers
+  updateSubscribers,
+  getInfluencers,
+  changePassword
 };

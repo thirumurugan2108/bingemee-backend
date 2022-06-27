@@ -80,9 +80,12 @@ const verifyOtp = catchAsync(async (req, res) => {
 
 const login = catchAsync(async (req, res) => {
   const { name, password } = req.body;
-  const user = await authService.loginUserWithNameAndPassword(name, password);
+  const user = await authService.loginUserWithNameAndPassword(name, password)
+  if (user.role != 'superadmin' && user.role !="influencer") {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid login')
+  }
   if(!user.isEmailVerified) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Username is not verified yet  ');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Username is not verified yet');
   }
   const tokens = await tokenService.generateAuthTokens(user);
   res.send({ user, tokens });
@@ -119,6 +122,16 @@ const verifyEmail = catchAsync(async (req, res) => {
   await authService.verifyEmail(req.query.token);
   res.status(httpStatus.NO_CONTENT).send();
 });
+const changePassword = catchAsync(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'user not found');
+  }
+  if (!req.body.password.match(/\d/) || !req.body.password.match(/[a-zA-Z]/)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Password must contain at least one letter and one number');
+  }
+  await authService.changePassword(req.user, req.body.password)
+  res.send();
+})
 
 module.exports = {
   register,
@@ -133,4 +146,5 @@ module.exports = {
   registerVerifyOtp,
   verifyOtp,
   sendLoginOtp,
+  changePassword,
 };

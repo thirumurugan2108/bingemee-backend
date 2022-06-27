@@ -18,6 +18,7 @@ router.post('/userRegister', validate(authValidation.userRegister), authControll
 router.post('/registerVerifyOtp', validate(authValidation.verifyOtp), authController.registerVerifyOtp)
 router.post('/verifyOtp', validate(authValidation.verifyOtp), authController.verifyOtp)
 router.post('/userLogin', validate(authValidation.validateEmail), authController.sendLoginOtp)
+router.post('/changepassword', auth('changePassword'), authController.changePassword)
 
 module.exports = router;
 
