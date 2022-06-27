@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const { Post } = require('../models');
 const ApiError = require('../utils/ApiError');
 const paymentService = require('./payment.service')
+const {displayPriceConversion} = require('../utils/common')
 /**
  * Create a post
  * @param {Object} postBody
@@ -122,15 +123,18 @@ const upsertPost = async (uuid, post) => {
 //   return user;
 // };
 
-const getAllPostsByUsername = async (username, purchasedProducts = [], expiryDuration) => {
-  const filter = { username: username };
+const getAllPostsByUsername = async (user, purchasedProducts = [], expiryDuration) => {
+  const filter = { username: user.name };
   const postResult = await Post.find(filter).sort({ 'updatedAt' : -1});;
   let images = [];
   let videos = [];
+  try{
   postResult.forEach(element => {
+    const displayPrice = displayPriceConversion(user.commission, element.price)
+    //const displayPrice = element.price
     let filteredElement = {
       title: element.title,
-      price: element.price,
+      price: displayPrice,
       isPaid: element.isPaid,
       id: element.id,
       albumFileNames: element.albumFileNames ? element.albumFileNames : ''
@@ -141,11 +145,13 @@ const getAllPostsByUsername = async (username, purchasedProducts = [], expiryDur
       filteredElement.albumUrl = `${albumURlSplit[0]}${element.uuid}/`
       filteredElement.isPaid = 'No'
     }
+    //console.log(filteredElement)
     if (!element.isVideo) {
       images.push(filteredElement);
     } else {
       videos.push(filteredElement);
     }
+
   });
 
   const result = {
@@ -153,6 +159,10 @@ const getAllPostsByUsername = async (username, purchasedProducts = [], expiryDur
     videos: videos
   };
   return result;
+}
+catch (e) {
+  console.log(e)
+}
 };
 
 const deletePost = async (uuid) => {

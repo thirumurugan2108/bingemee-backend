@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
+const {displayPriceConversion} = require('../utils/common')
 const { userService, cardService, postService, tokenService, paymentservice, subscriptionService } = require('../services');
 const { saveProfilePhoto, saveCoverPhoto } = require('../utils/Aws');
 const { compress } = require('../utils/jimp');
@@ -54,11 +55,28 @@ const getUserDetials = catchAsync(async (req, res) => {
   }
   const user = await userService.getUserByName(req.query.username);
   const cardList = await cardService.getCard(req.query.username);
-  const postList = await postService.getAllPostsByUsername(req.query.username, purchasedProducts, expiryDuration);
+  const displayCard = cardList.map(card => {
+    const displayPrice = displayPriceConversion(user.commission, card.price)
+    return {
+      isActive: card.isActive,
+      '_id' : card._id,
+      title:card.title,
+      description:card.description,
+      user_name:card.user_name,
+      createdAt:card.createdAt,
+      updatedAt:card.updatedAt,
+      price: displayPrice}
+  })
+  const postList = await postService.getAllPostsByUsername(user, purchasedProducts, expiryDuration);
   const subscriptions = await subscriptionService.getSubscriptionData(req.query.username, true)
+  subscriptions.subscription.map(sub => {
+    const displayPrice = displayPriceConversion(user.commission, sub.price)
+    sub.price = displayPrice
+  })
+  
   const result = {
     user,
-    cardList,
+    cardList: displayCard,
     images: postList.images,
     videos: postList.videos,
     currentProductIds: purchasedProducts,
@@ -137,16 +155,14 @@ const uploadCoverPhoto = catchAsync(async (req, res) => {
 }
 );
 
-const getInfluencerHomeData = catchAsync(async (req, res) => {
-  try {
-    const user = req.user;
-    const username = user?.name;
-    console.log(user)
+const getInfluencers = catchAsync(async (req, res) => {
+  if (req.headers.userrole && req.headers.userrole=="superadmin") {
+    const influencers = await userService.getInfluencers()
+    res.send(influencers)
   }
-  catch (e) {
-
+  else {
+    throw new ApiError(httpStatus.NOT_FOUND, 'not found');
   }
-
 })
 
 module.exports = {
@@ -158,5 +174,6 @@ module.exports = {
   getUserDetials,
   uploadProfilePhoto,
   uploadCoverPhoto,
-  getInfluencerHomeData
+  //getInfluencerHomeData,
+  getInfluencers
 };

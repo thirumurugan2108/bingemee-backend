@@ -2,12 +2,20 @@ const passport = require('passport');
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const { roleRights } = require('../config/roles');
+const { userService } = require('../services')
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
   if (err || info || !user) {
     return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
   }
-  req.user = user;
+  if (req.headers.userrole && req.headers.userrole=="superadmin" && req.headers.infloginas) {
+    const infId = req.headers.infloginas
+    const inf = await userService.getUserById(infId)
+    req.user = inf
+  }
+  else {
+    req.user = user
+  }
 
   // if (requiredRights.length) {
   //   const userRights = roleRights.get(user.role);
